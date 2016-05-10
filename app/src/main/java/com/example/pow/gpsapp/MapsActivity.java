@@ -30,6 +30,17 @@ import java.util.List;
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+     public void onZoom(View view)
+     {
+         if(view.getId() == R.id.btnzoomin)
+         {
+             mMap.animateCamera(CameraUpdateFactory.zoomIn());
+         }
+         if(view.getId() == R.id.btnzoomout)
+         {
+             mMap.animateCamera(CameraUpdateFactory.zoomOut());
+         }
+     }
 
     public void onSearch(View view)
     {
@@ -48,6 +59,7 @@ import java.util.List;
             LatLng latLng = new LatLng(address.getLatitude() , address.getLongitude());
             mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
             mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            mMap.animateCamera(CameraUpdateFactory.zoomIn());
         }
     }
 

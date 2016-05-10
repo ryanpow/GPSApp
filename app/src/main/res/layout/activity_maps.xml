@@ -4,16 +4,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:weightSum="1">
-<LinearLayout
+
+    <LinearLayout
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="0dp"
     android:layout_weight="0.15">
 
 
     <EditText
-        android:layout_width="300dp"
+        android:layout_width="198dp"
         android:layout_height="wrap_content"
         android:id="@+id/txtAddress" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -21,15 +23,31 @@
         android:id="@+id/btn_Address"
         android:layout_gravity="right"
         android:onClick="onSearch" />
-</LinearLayout>
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="^"
+        android:id="@+id/btnzoomin"
+        android:onClick="onZoom"/>
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="v"
+            android:id="@+id/btnzoomout"
+            android:onClick="onZoom"/>
+    </LinearLayout>
+
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/map"
     android:name="com.google.android.gms.maps.SupportMapFragment"
-    android:layout_width="match_parent"
+    android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    tools:context="com.example.pow.gpsapp.MapsActivity"
-        android:layout_weight="0.73" />
+    tools:context="com.example.pow.gpsapp.MapsActivity" />
 
-    </LinearLayout>
+</LinearLayout>
