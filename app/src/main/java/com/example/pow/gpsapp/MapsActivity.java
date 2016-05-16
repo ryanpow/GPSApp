@@ -35,11 +35,11 @@ import java.util.List;
      {
          if(view.getId() == R.id.btnzoomin)
          {
-             mMap.animateCamera(CameraUpdateFactory.zoomIn());
+             mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
          }
          if(view.getId() == R.id.btnzoomout)
          {
-             mMap.animateCamera(CameraUpdateFactory.zoomOut());
+             mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
          }
      }
 
