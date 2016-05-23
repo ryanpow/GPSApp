@@ -5,16 +5,19 @@
     android:orientation="vertical"
     android:weightSum="1">
 
-    <LinearLayout
-    android:layout_width="wrap_content"
-    android:layout_height="0dp"
-    android:layout_weight="0.15">
+    <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="93dp">
 
 
     <EditText
         android:layout_width="198dp"
         android:layout_height="wrap_content"
-        android:id="@+id/txtAddress" />
+        android:id="@+id/txtAddress"
+        android:layout_marginLeft="0dp"
+        android:layout_above="@+id/btnContact"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/btn_Address" />
 
     <Button
         android:layout_width="wrap_content"
@@ -22,7 +25,10 @@
         android:text="Search"
         android:id="@+id/btn_Address"
         android:layout_gravity="right"
-        android:onClick="onSearch" />
+        android:onClick="onSearch"
+        android:layout_marginLeft="0dp"
+        android:layout_alignTop="@+id/txtAddress"
+        android:layout_alignParentEnd="true" />
 
     <Button
         style="?android:attr/buttonStyleSmall"
@@ -30,7 +36,10 @@
         android:layout_height="wrap_content"
         android:text="^"
         android:id="@+id/btnzoomin"
-        android:onClick="onZoom"/>
+        android:onClick="onZoom"
+        android:layout_marginLeft="0dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -38,8 +47,19 @@
             android:layout_height="wrap_content"
             android:text="v"
             android:id="@+id/btnzoomout"
-            android:onClick="onZoom"/>
-    </LinearLayout>
+            android:onClick="onZoom"
+            android:layout_marginLeft="0dp"
+            android:layout_below="@+id/txtAddress"
+            android:layout_toEndOf="@+id/btnzoomin" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Contacts"
+            android:id="@+id/btnContact"
+            android:layout_alignParentBottom="true"
+            android:layout_toEndOf="@+id/btnzoomout" />
+    </RelativeLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
