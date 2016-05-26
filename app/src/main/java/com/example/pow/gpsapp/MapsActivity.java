@@ -3,6 +3,7 @@
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
@@ -25,7 +26,9 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.telephony.SmsManager;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -82,18 +85,29 @@ import java.util.List;
 
              @Override
              public boolean onQueryTextSubmit(String query) {
-                 // TODO Auto-generated method stub
+
 
                  return false;
              }
 
              @Override
              public boolean onQueryTextChange(String newText) {
-                 // TODO Auto-generated method stub
+
                  adapter.filter(newText);
                  return false;
              }
          });
+         (findViewById(R.id.btnSelect)).setOnClickListener( new View.OnClickListener() {
+             @Override
+             public void onClick(View v) {
+                 // user BoD suggests using Intent.ACTION_PICK instead of .ACTION_GET_CONTENT to avoid the chooser
+                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                 // BoD con't: CONTENT_TYPE instead of CONTENT_ITEM_TYPE
+                 intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
+                 startActivityForResult(intent, 1);
+             }
+         });
+
      }
 
      // Load data on background
@@ -159,14 +173,51 @@ import java.util.List;
          super.onStop();
          phones.close();
      }
+     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+         if (data != null) {
+             Uri uri = data.getData();
+             String number = "";
+             if (uri != null) {
+                 Cursor c = null;
+                 try {
+                     c = getContentResolver().query(uri, new String[]{
+                                     ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                     ContactsContract.CommonDataKinds.Phone.TYPE},
+                             null, null, null);
 
-     public void contact_map(View view)
-     {
-         setContentView(R.layout.activity_maps);
-         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                 .findFragmentById(R.id.map2);
-         mapFragment.getMapAsync(this);
+                     if (c != null && c.moveToFirst()) {
+                         number = c.getString(0);
+                         int type = c.getInt(1);
+                         showSelectedNumber(type, number);
+                     }
+
+                     Log.i("Send SMS", "");
+                     String message = "Hello World";
+                     TextView textview = (TextView) findViewById(R.id.txtNumber);
+                     textview.setText(number);
+                     try {
+                         SmsManager smsManager = SmsManager.getDefault();
+                         smsManager.sendTextMessage(number, null, message, null, null);
+                         Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+                     } catch (Exception e) {
+                         Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
+                         e.printStackTrace();
+                     }
+                     } finally {
+                         if (c != null) {
+                             c.close();
+                         }
+                     }
+                 }
+
+             }
+
+         }
+
+     public void showSelectedNumber(int type, String number) {
+         Toast.makeText(this, type + ": " + number, Toast.LENGTH_LONG).show();
      }
+
      public void onSwitch(View view)
      {
          if(view.getId() == R.id.btnBack)

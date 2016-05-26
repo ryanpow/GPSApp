@@ -45,4 +45,21 @@
         android:layout_height="match_parent"
         android:id="@+id/contacts_list"
         android:layout_above="@+id/btnBack"></ListView>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select"
+        android:id="@+id/btnSelect"
+        android:layout_alignTop="@+id/btnBack"
+        android:layout_toStartOf="@+id/btnBack" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNumber"
+        android:layout_below="@+id/contacts_list"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/btnBack" />
 </RelativeLayout>
