@@ -1,9 +1,12 @@
  package com.example.pow.gpsapp;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
@@ -12,8 +15,11 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -30,6 +36,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.telephony.SmsManager;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,7 +56,9 @@ import java.util.List;
 
  public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    private GoogleMap mMap;
+
+     private GoogleMap mMap;
+     private static final int LOCATION_REQUEST_CODE = 101;
      ArrayList<SelectUser> selectUsers;
      List<SelectUser> temp;
      ListView listView;
@@ -55,21 +66,32 @@ import java.util.List;
      ContentResolver resolver;
      SearchView search;
      SelectUserAdapter adapter;
+     IncomingSMSReceiver receiver = new IncomingSMSReceiver();
+     /**
+      * ATTENTION: This was auto-generated to implement the App Indexing API.
+      * See https://g.co/AppIndexing/AndroidStudio for more information.
+      */
+     private GoogleApiClient client;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+     @Override
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_maps);
+         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                 LOCATION_REQUEST_CODE);
+         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                 .findFragmentById(R.id.map);
+         mapFragment.getMapAsync(this);
+         System.out.println("Test");
+         // ATTENTION: This was auto-generated to implement the App Indexing API.
+         // See https://g.co/AppIndexing/AndroidStudio for more information.
+         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+     }
 
-    }
 
-     public void contactpopup()
-     {
+     public void contactpopup() {
          setContentView(R.layout.contactpopup);
-
+         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.READ_CONTACTS);
          selectUsers = new ArrayList<SelectUser>();
          resolver = this.getContentResolver();
          listView = (ListView) findViewById(R.id.contacts_list);
@@ -97,7 +119,7 @@ import java.util.List;
                  return false;
              }
          });
-         (findViewById(R.id.btnSelect)).setOnClickListener( new View.OnClickListener() {
+         (findViewById(R.id.btnSelect)).setOnClickListener(new View.OnClickListener() {
              @Override
              public void onClick(View v) {
                  // user BoD suggests using Intent.ACTION_PICK instead of .ACTION_GET_CONTENT to avoid the chooser
@@ -108,6 +130,46 @@ import java.util.List;
              }
          });
 
+     }
+
+     @Override
+     public void onStart() {
+         super.onStart();
+
+         // ATTENTION: This was auto-generated to implement the App Indexing API.
+         // See https://g.co/AppIndexing/AndroidStudio for more information.
+         client.connect();
+         Action viewAction = Action.newAction(
+                 Action.TYPE_VIEW, // TODO: choose an action type.
+                 "Maps Page", // TODO: Define a title for the content shown.
+                 // TODO: If you have web page content that matches this app activity's content,
+                 // make sure this auto-generated web page URL is correct.
+                 // Otherwise, set the URL to null.
+                 Uri.parse("http://host/path"),
+                 // TODO: Make sure this auto-generated app URL is correct.
+                 Uri.parse("android-app://com.example.pow.gpsapp/http/host/path")
+         );
+         AppIndex.AppIndexApi.start(client, viewAction);
+     }
+
+     @Override
+     public void onStop() {
+         super.onStop();
+
+         // ATTENTION: This was auto-generated to implement the App Indexing API.
+         // See https://g.co/AppIndexing/AndroidStudio for more information.
+         Action viewAction = Action.newAction(
+                 Action.TYPE_VIEW, // TODO: choose an action type.
+                 "Maps Page", // TODO: Define a title for the content shown.
+                 // TODO: If you have web page content that matches this app activity's content,
+                 // make sure this auto-generated web page URL is correct.
+                 // Otherwise, set the URL to null.
+                 Uri.parse("http://host/path"),
+                 // TODO: Make sure this auto-generated app URL is correct.
+                 Uri.parse("android-app://com.example.pow.gpsapp/http/host/path")
+         );
+         AppIndex.AppIndexApi.end(client, viewAction);
+         client.disconnect();
      }
 
      // Load data on background
@@ -168,11 +230,6 @@ import java.util.List;
          }
      }
 
-     @Override
-     protected void onStop() {
-         super.onStop();
-         phones.close();
-     }
      protected void onActivityResult(int requestCode, int resultCode, Intent data) {
          if (data != null) {
              Uri uri = data.getData();
@@ -192,7 +249,7 @@ import java.util.List;
                      }
 
                      Log.i("Send SMS", "");
-                     String message = "Hello World";
+                     String message = "Request";
                      TextView textview = (TextView) findViewById(R.id.txtNumber);
                      textview.setText(number);
                      try {
@@ -203,83 +260,67 @@ import java.util.List;
                          Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
                          e.printStackTrace();
                      }
-                     } finally {
-                         if (c != null) {
-                             c.close();
-                         }
+                 } finally {
+                     if (c != null) {
+                         c.close();
                      }
                  }
-
              }
 
          }
+
+     }
 
      public void showSelectedNumber(int type, String number) {
          Toast.makeText(this, type + ": " + number, Toast.LENGTH_LONG).show();
      }
 
-     public void onSwitch(View view)
-     {
-         if(view.getId() == R.id.btnBack)
-         {
+     public void onSwitch(View view) {
+         if (view.getId() == R.id.btnBack) {
              setContentView(R.layout.contact_map);
+             SupportMapFragment mapFragment2 = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map2);
+             //mapFragment2.getMapAsync(this);
          }
-         if(view.getId() == R.id.btnContact)
-         {
+         if (view.getId() == R.id.btnContact) {
              setContentView(R.layout.contactpopup);
              contactpopup();
          }
      }
 
-     public void onZoom(View view)
-     {
-         if(view.getId() == R.id.btnzoomin)
-         {
-             mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
-         }
-         if(view.getId() == R.id.btnzoomout)
-         {
-             mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
-         }
+     public void Map2(GoogleMap googleMap2, double x, double y) {
+         mMap = googleMap2;
+         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
+         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
+         mMap.setMyLocationEnabled(true);
+         LatLng coordinate = new LatLng(x, y);
+         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
+         mMap.animateCamera(location);
      }
-     public void onZoom2(View view)
-     {
-         if(view.getId() == R.id.btnzoomin2)
-         {
+
+     public void onZoom(View view) {
+         if (view.getId() == R.id.btnzoomin) {
              mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
          }
-         if(view.getId() == R.id.btnzoomout2)
-         {
+         if (view.getId() == R.id.btnzoomout) {
              mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
          }
      }
 
-    public void onSearch(View view)
-    {
-        EditText location_tf = (EditText)findViewById(R.id.txtAddress);
-        String location = location_tf.getText().toString();
-        List<Address> addressList = null;
-        if(location != null || location.equals(""))
-        {
-            Geocoder geocoder = new Geocoder(this);
-            try {
-                addressList = geocoder.getFromLocationName(location, 1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Address address = addressList.get(0);
-            LatLng latLng = new LatLng(address.getLatitude() , address.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-        }
-    }
-     public void onSearch2(View view)
-     {
-         EditText location_tf = (EditText)findViewById(R.id.txtAddress2);
+     public void onZoom2(View view) {
+         if (view.getId() == R.id.btnzoomin2) {
+             mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
+         }
+         if (view.getId() == R.id.btnzoomout2) {
+             mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
+         }
+     }
+
+     public void onSearch(View view) {
+         EditText location_tf = (EditText) findViewById(R.id.txtAddress);
          String location = location_tf.getText().toString();
          List<Address> addressList = null;
-         if(location != null || location.equals(""))
-         {
+         if (location != null || location.equals("")) {
              Geocoder geocoder = new Geocoder(this);
              try {
                  addressList = geocoder.getFromLocationName(location, 1);
@@ -287,19 +328,65 @@ import java.util.List;
                  e.printStackTrace();
              }
              Address address = addressList.get(0);
-             LatLng latLng = new LatLng(address.getLatitude() , address.getLongitude());
+             LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
              mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
              mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
      }
 
+     public void onSearch2(View view) {
+         EditText location_tf = (EditText) findViewById(R.id.txtAddress2);
+         String location = location_tf.getText().toString();
+         List<Address> addressList = null;
+         if (location != null || location.equals("")) {
+             Geocoder geocoder = new Geocoder(this);
+             try {
+                 addressList = geocoder.getFromLocationName(location, 1);
+             } catch (IOException e) {
+                 e.printStackTrace();
+             }
+             Address address = addressList.get(0);
+             LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+             mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+         }
+     }
+     protected void requestPermission(String permissionType, int
+             requestCode) {
+         int permission = ContextCompat.checkSelfPermission(this,
+                 permissionType);
+         if (permission != PackageManager.PERMISSION_GRANTED) {
+             ActivityCompat.requestPermissions(this,
+                     new String[]{permissionType}, requestCode
+             );
+         }
+     }
 
      @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        mMap.setMyLocationEnabled(true);
-        LatLng coordinate = new LatLng(1.3468, 103.9326);
-        CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
-        mMap.animateCamera(location);
-    }
-}
+     public void onRequestPermissionsResult(int requestCode,
+                                            String permissions[], int[]
+                                                    grantResults) {
+         switch (requestCode) {
+             case LOCATION_REQUEST_CODE: {
+                 if (grantResults.length == 0
+                         || grantResults[0] != PackageManager.PERMISSION_GRANTED)
+                 {
+                     Toast.makeText(this, "Unable to show location - permission required", Toast.LENGTH_LONG).show();
+                 }
+                 return;
+             }
+         }
+     }
+
+     @Override
+     public void onMapReady(GoogleMap googleMap) {
+         mMap = googleMap;
+         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+             return;
+         }
+         mMap.setMyLocationEnabled(true);
+         LatLng coordinate = new LatLng(1.3468, 103.9326);
+         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
+         mMap.animateCamera(location);
+     }
+ }
