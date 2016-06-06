@@ -11,6 +11,8 @@ import android.database.Cursor;
 import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
@@ -39,6 +41,7 @@ import android.telephony.SmsManager;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -48,13 +51,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.pow.gpsapp.SelectUserAdapter;
 import com.example.pow.gpsapp.SelectUser;
+import com.google.android.gms.location.LocationListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 
- public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
 
      private GoogleMap mMap;
@@ -66,7 +70,7 @@ import java.util.List;
      ContentResolver resolver;
      SearchView search;
      SelectUserAdapter adapter;
-     IncomingSMSReceiver receiver = new IncomingSMSReceiver();
+     LocationManager mLocationManager;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
       * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -83,8 +87,6 @@ import java.util.List;
                  .findFragmentById(R.id.map);
          mapFragment.getMapAsync(this);
          System.out.println("Test");
-         // ATTENTION: This was auto-generated to implement the App Indexing API.
-         // See https://g.co/AppIndexing/AndroidStudio for more information.
          client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
      }
 

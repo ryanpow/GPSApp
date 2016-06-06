@@ -17,10 +17,6 @@ import android.widget.Toast;
 public class IncomingSMSReceiver extends BroadcastReceiver {
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
 
-
-
-
-
     @Override
     public void onReceive(Context context, Intent intent) {
         System.out.println("Test1233");
