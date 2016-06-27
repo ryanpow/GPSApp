@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 public class IncomingSMSReceiver extends BroadcastReceiver {
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
+    String txtLocation= MapsActivity.txtLocation;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -39,13 +40,13 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
 
                 if (message.startsWith("Request"))
                 {
-                    String txtSMS="Location";
+                    String txtSMS=txtLocation;
                     Toast.makeText(context, "Sending Location", Toast.LENGTH_SHORT).show();
 
                     this.abortBroadcast();
                     sendSMS(sender, txtSMS);
                 }
-                if (message.startsWith("Location"))
+                if (message.startsWith("AQOZkasQSM"))
                 {
                     String txtSMS="Thanks";
                     Toast.makeText(context, "Received Location", Toast.LENGTH_SHORT).show();

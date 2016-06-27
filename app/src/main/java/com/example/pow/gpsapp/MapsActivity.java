@@ -74,6 +74,7 @@ import java.util.List;
      SelectUserAdapter adapter;
      private Location mLastLocation;
      TextView mainLabel;
+     static String txtLocation;
      public LocationManager mLocationManager;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -93,8 +94,8 @@ import java.util.List;
          System.out.println("Test");
          mainLabel = (TextView) findViewById(R.id.mainLabel);
          client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-         int LOCATION_REFRESH_TIME = 1000;
-         int LOCATION_REFRESH_DISTANCE = 5;
+         int LOCATION_REFRESH_TIME = 0;
+         int LOCATION_REFRESH_DISTANCE = 0;
 
          mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
          mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
@@ -108,8 +109,10 @@ import java.util.List;
 
              mLastLocation = location;
 
-             mainLabel.setText("Latitude:" + String.valueOf(location.getLatitude()) + "\n" +
+             txtLocation = ("AQOZkasQSM"+"\n"+
+                     "Latitude:" + String.valueOf(location.getLatitude()) + "\n" +
                      "Longitude:" + String.valueOf(location.getLongitude()));
+             mainLabel.setText(txtLocation);
          }
 
          @Override
