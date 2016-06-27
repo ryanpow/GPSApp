@@ -60,6 +60,16 @@
             android:id="@+id/btnContact"
             android:layout_alignParentBottom="true"
             android:layout_toEndOf="@+id/btnzoomout" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/mainLabel"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/btn_Address"
+            android:layout_alignEnd="@+id/btn_Address"
+            android:layout_toEndOf="@+id/btnContact"
+            android:text="Location" />
     </RelativeLayout>
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"

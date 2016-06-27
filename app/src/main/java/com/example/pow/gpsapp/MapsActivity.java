@@ -51,14 +51,16 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.pow.gpsapp.SelectUserAdapter;
 import com.example.pow.gpsapp.SelectUser;
-import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.common.ConnectionResult;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 
- public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
+
+ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
 
      private GoogleMap mMap;
@@ -70,7 +72,9 @@ import java.util.List;
      ContentResolver resolver;
      SearchView search;
      SelectUserAdapter adapter;
-     LocationManager mLocationManager;
+     private Location mLastLocation;
+     TextView mainLabel;
+     public LocationManager mLocationManager;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
       * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -87,9 +91,43 @@ import java.util.List;
                  .findFragmentById(R.id.map);
          mapFragment.getMapAsync(this);
          System.out.println("Test");
+         mainLabel = (TextView) findViewById(R.id.mainLabel);
          client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-     }
+         int LOCATION_REFRESH_TIME = 1000;
+         int LOCATION_REFRESH_DISTANCE = 5;
 
+         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                 LOCATION_REFRESH_DISTANCE, mLocationListener);
+     }
+     private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
+         @Override
+         public void onLocationChanged(Location location) {
+             //code
+             System.out.println("onLocationChanged");
+
+             mLastLocation = location;
+
+             mainLabel.setText("Latitude:" + String.valueOf(location.getLatitude()) + "\n" +
+                     "Longitude:" + String.valueOf(location.getLongitude()));
+         }
+
+         @Override
+         public void onStatusChanged(String provider, int status, Bundle extras) {
+             System.out.println("onStatusChanged");
+         }
+
+         @Override
+         public void onProviderEnabled(String provider) {
+             System.out.println("onProviderEnabled");
+         }
+
+         @Override
+         public void onProviderDisabled(String provider) {
+             System.out.println("onProviderDisabled");
+             //turns off gps services
+         }
+     };
 
      public void contactpopup() {
          setContentView(R.layout.contactpopup);
@@ -390,5 +428,19 @@ import java.util.List;
          LatLng coordinate = new LatLng(1.3468, 103.9326);
          CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
          mMap.animateCamera(location);
+     }
+     @Override
+     public void onConnected(Bundle bundle) {
+
+     }
+
+     @Override
+     public void onConnectionSuspended(int i) {
+
+     }
+
+     @Override
+     public void onConnectionFailed(ConnectionResult connectionResult) {
+
      }
  }
