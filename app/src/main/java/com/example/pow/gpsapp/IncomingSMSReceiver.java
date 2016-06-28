@@ -12,11 +12,15 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 
 public class IncomingSMSReceiver extends BroadcastReceiver {
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     String txtLocation= MapsActivity.txtLocation;
+    static double latitude,longitude;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -53,6 +57,16 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
 
                     this.abortBroadcast();
                     sendSMS(sender, txtSMS);
+                    String[] separated = message.split(":");
+                    String[] latlong = separated[1].split(",");
+                    latitude = Double.parseDouble(latlong[0]);
+                    longitude = Double.parseDouble(latlong[1]);
+                    System.out.println("ok");
+                    LatLng latLng = new LatLng(latitude,longitude);
+                    MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+                    MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+                    System.out.println("abc");
+
                 }
 
             }

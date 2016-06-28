@@ -63,7 +63,7 @@ import java.util.List;
  public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
 
-     private GoogleMap mMap;
+     public static GoogleMap mMap;
      private static final int LOCATION_REQUEST_CODE = 101;
      ArrayList<SelectUser> selectUsers;
      List<SelectUser> temp;
@@ -81,6 +81,8 @@ import java.util.List;
       * See https://g.co/AppIndexing/AndroidStudio for more information.
       */
      private GoogleApiClient client;
+     static double latitude= IncomingSMSReceiver.latitude;
+     static double longitude= IncomingSMSReceiver.longitude;
 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +111,9 @@ import java.util.List;
 
              mLastLocation = location;
 
-             txtLocation = ("AQOZkasQSM"+"\n"+
-                     "Latitude:" + String.valueOf(location.getLatitude()) + "\n" +
-                     "Longitude:" + String.valueOf(location.getLongitude()));
+             txtLocation = ("AQOZkasQSM"+":"+
+                      String.valueOf(location.getLatitude()) + "," +
+                      String.valueOf(location.getLongitude()));
              mainLabel.setText(txtLocation);
          }
 
@@ -375,6 +377,12 @@ import java.util.List;
              mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
              mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
+     }
+     public static void onLocation(View view){
+
+         LatLng latLng = new LatLng(latitude,longitude);
+         mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
      }
 
      public void onSearch2(View view) {
