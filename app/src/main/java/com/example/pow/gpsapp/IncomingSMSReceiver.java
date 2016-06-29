@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -49,6 +51,7 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
 
                     this.abortBroadcast();
                     sendSMS(sender, txtSMS);
+
                 }
                 if (message.startsWith("AQOZkasQSM"))
                 {
@@ -66,13 +69,11 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
                     MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
                     MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
                     System.out.println("abc");
-
                 }
-
             }
         }
     }
-    // sends your SMS
+    // sends the SMS
     private void sendSMS(final String phoneNumber, String message) {
 
 
@@ -82,6 +83,4 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
             sms.sendTextMessage(phoneNumber, null, message, null, null);
         }
     }
-
-
 }

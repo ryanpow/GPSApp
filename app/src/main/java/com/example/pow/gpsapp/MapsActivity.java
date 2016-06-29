@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Point;
@@ -14,6 +15,8 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
@@ -25,6 +28,8 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -83,6 +88,11 @@ import java.util.List;
      private GoogleApiClient client;
      static double latitude= IncomingSMSReceiver.latitude;
      static double longitude= IncomingSMSReceiver.longitude;
+     TextView mainText;
+     WifiManager mainWifi;
+     WifiReceiver receiverWifi;
+     List<ScanResult> wifiList;
+     StringBuilder sb = new StringBuilder();
 
      @Override
      protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +112,36 @@ import java.util.List;
          mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
          mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
                  LOCATION_REFRESH_DISTANCE, mLocationListener);
+         mainText = (TextView) findViewById(R.id.mainText);
+         mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+         receiverWifi = new WifiReceiver();
+         registerReceiver(receiverWifi, new IntentFilter(
+                 WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+         mainWifi.startScan();
+         mainText.setText("\nStarting Scan...\n");
+     }
+     public boolean onCreateOptionsMenu(Menu menu) {
+         menu.add(0, 0, 0, "Refresh");
+         return super.onCreateOptionsMenu(menu);}
+     public boolean onMenuItemSelected(int featureId, MenuItem item) {
+         mainWifi.startScan();
+         mainText.setText("Starting Scan");
+         return super.onMenuItemSelected(featureId, item);}
+     protected void onPause() {
+         unregisterReceiver(receiverWifi);
+         super.onPause();
+     }
+     class WifiReceiver extends BroadcastReceiver {
+         public void onReceive(Context c, Intent intent) {
+             sb = new StringBuilder();
+             wifiList = mainWifi.getScanResults();
+             for (int i = 0; i < wifiList.size(); i++) {
+                 sb.append(new Integer(i + 1).toString() + ".");
+                 sb.append((wifiList.get(i)).toString());
+                 sb.append("\n");
+             }
+             mainText.setText(sb);
+         }
      }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
