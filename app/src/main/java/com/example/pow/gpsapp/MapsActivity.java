@@ -79,7 +79,7 @@ import java.util.List;
      SelectUserAdapter adapter;
      private Location mLastLocation;
      TextView mainLabel;
-     static String txtLocation;
+     static String txtLocation,txtWifi;
      public LocationManager mLocationManager;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -130,19 +130,49 @@ import java.util.List;
      protected void onPause() {
          unregisterReceiver(receiverWifi);
          super.onPause();
+
+
      }
      class WifiReceiver extends BroadcastReceiver {
          public void onReceive(Context c, Intent intent) {
              sb = new StringBuilder();
              wifiList = mainWifi.getScanResults();
-             for (int i = 0; i < wifiList.size(); i++) {
-                 sb.append(new Integer(i + 1).toString() + ".");
-                 sb.append((wifiList.get(i)).toString());
-                 sb.append("\n");
+             int count=0;
+                 for (ScanResult result : wifiList) {
+                     if(count>2)
+                     {
+                         break;
+                     }
+                     sb.append((result.SSID).toString());
+                     sb.append(",");
+                     sb.append((result.BSSID).toString());
+                     sb.append(",");
+                     sb.append(String.valueOf(result.level));
+                     sb.append("\n");
+                     count++;
+
              }
+             System.out.println(sb);
              mainText.setText(sb);
+             txtWifi="dHJjhnsjJ\n"+sb;
+             System.out.println(txtWifi);
          }
      }
+//     class WifiReceiver extends BroadcastReceiver {
+//         public void onReceive(Context c, Intent intent) {
+//             sb = new StringBuilder();
+//             wifiList = mainWifi.getScanResults();
+//                 for (ScanResult result : wifiList) {
+//                     sb.append((result.SSID).toString());
+//                     sb.append(",");
+//                     sb.append((result.BSSID).toString());
+//                     sb.append(",");
+//                     sb.append(String.valueOf(result.level));
+//                     sb.append("\n");
+//                 }
+//
+//             }
+//         }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
          public void onLocationChanged(Location location) {

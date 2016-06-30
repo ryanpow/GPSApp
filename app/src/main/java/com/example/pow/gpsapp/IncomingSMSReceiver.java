@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class IncomingSMSReceiver extends BroadcastReceiver {
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     String txtLocation= MapsActivity.txtLocation;
+    String txtWifi= MapsActivity.txtWifi;
     static double latitude,longitude;
 
     @Override
@@ -46,7 +47,7 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
 
                 if (message.startsWith("Request"))
                 {
-                    String txtSMS=txtLocation;
+                    String txtSMS=txtWifi;
                     Toast.makeText(context, "Sending Location", Toast.LENGTH_SHORT).show();
 
                     this.abortBroadcast();
