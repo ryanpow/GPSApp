@@ -69,6 +69,7 @@ import java.util.List;
 
 
      public static GoogleMap mMap;
+     TextView txt_wifi;
      private static final int LOCATION_REQUEST_CODE = 101;
      ArrayList<SelectUser> selectUsers;
      List<SelectUser> temp;
@@ -78,9 +79,10 @@ import java.util.List;
      SearchView search;
      SelectUserAdapter adapter;
      private Location mLastLocation;
-     TextView mainLabel;
+     public static TextView mainLabel;
      static String txtLocation,txtWifi;
      public LocationManager mLocationManager;
+     String wifiresult=IncomingSMSReceiver.wifiresult;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
       * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -88,7 +90,6 @@ import java.util.List;
      private GoogleApiClient client;
      static double latitude= IncomingSMSReceiver.latitude;
      static double longitude= IncomingSMSReceiver.longitude;
-     TextView mainText;
      WifiManager mainWifi;
      WifiReceiver receiverWifi;
      List<ScanResult> wifiList;
@@ -112,20 +113,17 @@ import java.util.List;
          mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
          mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
                  LOCATION_REFRESH_DISTANCE, mLocationListener);
-         mainText = (TextView) findViewById(R.id.mainText);
          mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
          receiverWifi = new WifiReceiver();
          registerReceiver(receiverWifi, new IntentFilter(
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
-         mainText.setText("\nStarting Scan...\n");
      }
      public boolean onCreateOptionsMenu(Menu menu) {
          menu.add(0, 0, 0, "Refresh");
          return super.onCreateOptionsMenu(menu);}
      public boolean onMenuItemSelected(int featureId, MenuItem item) {
          mainWifi.startScan();
-         mainText.setText("Starting Scan");
          return super.onMenuItemSelected(featureId, item);}
      protected void onPause() {
          unregisterReceiver(receiverWifi);
@@ -153,26 +151,10 @@ import java.util.List;
 
              }
              System.out.println(sb);
-             mainText.setText(sb);
-             txtWifi="dHJjhnsjJ\n"+sb;
+             txtWifi="dHJjhnsjJ@"+sb;
              System.out.println(txtWifi);
          }
      }
-//     class WifiReceiver extends BroadcastReceiver {
-//         public void onReceive(Context c, Intent intent) {
-//             sb = new StringBuilder();
-//             wifiList = mainWifi.getScanResults();
-//                 for (ScanResult result : wifiList) {
-//                     sb.append((result.SSID).toString());
-//                     sb.append(",");
-//                     sb.append((result.BSSID).toString());
-//                     sb.append(",");
-//                     sb.append(String.valueOf(result.level));
-//                     sb.append("\n");
-//                 }
-//
-//             }
-//         }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
          public void onLocationChanged(Location location) {
@@ -203,6 +185,12 @@ import java.util.List;
              //turns off gps services
          }
      };
+     public void wifi_list(){
+         setContentView(R.layout.wifi_list);
+         txt_wifi = (TextView) findViewById(R.id.txt_wifi);
+         txt_wifi.setText(wifiresult);
+
+     }
 
      public void contactpopup() {
          setContentView(R.layout.contactpopup);
@@ -400,6 +388,16 @@ import java.util.List;
          if (view.getId() == R.id.btnContact) {
              setContentView(R.layout.contactpopup);
              contactpopup();
+         }
+         if (view.getId() == R.id.btnWifi) {
+             setContentView(R.layout.wifi_list);
+             wifi_list();
+         }
+         if (view.getId() == R.id.btnBack2) {
+             setContentView(R.layout.contact_map);
+             SupportMapFragment mapFragment2 = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map2);
+             //mapFragment2.getMapAsync(this);
          }
      }
 

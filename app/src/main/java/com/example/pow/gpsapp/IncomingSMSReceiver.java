@@ -24,6 +24,7 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
     String txtLocation= MapsActivity.txtLocation;
     String txtWifi= MapsActivity.txtWifi;
     static double latitude,longitude;
+    public static String wifiresult;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -70,6 +71,17 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
                     MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
                     MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
                     System.out.println("abc");
+                }
+                if (message.startsWith("dHJjhnsjJ"))
+                {
+                    String txtSMS="Thanks";
+                    Toast.makeText(context, "Received Wifi", Toast.LENGTH_SHORT).show();
+
+                    this.abortBroadcast();
+                    sendSMS(sender, txtSMS);
+                    String[] separated = message.split("@");
+                    wifiresult=separated[1];
+                    MapsActivity.mainLabel.setText(wifiresult);
                 }
             }
         }
