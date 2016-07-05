@@ -24,7 +24,7 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
     String txtLocation= MapsActivity.txtLocation;
     String txtWifi= MapsActivity.txtWifi;
     static double latitude,longitude;
-    public static String wifiresult;
+    public static String wifiresult,SSID1,SSID2,SSID3,MAC1,MAC2,MAC3,level1,level2,level3;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -82,6 +82,26 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
                     String[] separated = message.split("@");
                     wifiresult=separated[1];
                     MapsActivity.mainLabel.setText(wifiresult);
+                    String[] wifiinfo = wifiresult.split("!");
+                    String wifi1=wifiinfo[0];
+                    String wifi2=wifiinfo[1];
+                    String wifi3=wifiinfo[2];
+                    String[] wifiinfo1 = wifi1.split(",");
+                    SSID1=wifiinfo1[0];
+                    MAC1=wifiinfo1[1];
+                    level1=wifiinfo1[2];
+                    String[] wifiinfo2 = wifi2.split(",");
+                    SSID2=wifiinfo2[0];
+                    MAC2=wifiinfo2[1];
+                    level2=wifiinfo2[2];
+                    String[] wifiinfo3 = wifi3.split(",");
+                    SSID3=wifiinfo3[0];
+                    MAC3=wifiinfo3[1];
+                    level3=wifiinfo3[2];
+                    System.out.println(wifi3);
+                    System.out.println(wifiinfo1[0]);
+                    System.out.println(wifiinfo3[1]);
+                    System.out.println(MAC3);
                 }
             }
         }

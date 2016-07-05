@@ -69,7 +69,6 @@ import java.util.List;
 
 
      public static GoogleMap mMap;
-     TextView txt_wifi;
      private static final int LOCATION_REQUEST_CODE = 101;
      ArrayList<SelectUser> selectUsers;
      List<SelectUser> temp;
@@ -79,10 +78,10 @@ import java.util.List;
      SearchView search;
      SelectUserAdapter adapter;
      private Location mLastLocation;
-     public static TextView mainLabel;
+     public static TextView mainLabel,txtSSID1,txtSSID2,txtSSID3,txtMAC1,txtMAC2,txtMAC3,txtlevel1,txtlevel2,txtlevel3;
      static String txtLocation,txtWifi;
      public LocationManager mLocationManager;
-     String wifiresult=IncomingSMSReceiver.wifiresult;
+//     String wifiresult=IncomingSMSReceiver.wifiresult;
      /**
       * ATTENTION: This was auto-generated to implement the App Indexing API.
       * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -146,7 +145,7 @@ import java.util.List;
                      sb.append((result.BSSID).toString());
                      sb.append(",");
                      sb.append(String.valueOf(result.level));
-                     sb.append("\n");
+                     sb.append("!");
                      count++;
 
              }
@@ -187,9 +186,34 @@ import java.util.List;
      };
      public void wifi_list(){
          setContentView(R.layout.wifi_list);
-         txt_wifi = (TextView) findViewById(R.id.txt_wifi);
-         txt_wifi.setText(wifiresult);
-
+         txtSSID1 = (TextView) findViewById(R.id.txtSSID1);
+         txtSSID2 = (TextView) findViewById(R.id.txtSSID2);
+         txtSSID3 = (TextView) findViewById(R.id.txtSSID3);
+         txtMAC1 = (TextView) findViewById(R.id.txtMAC1);
+         txtMAC2 = (TextView) findViewById(R.id.txtMAC2);
+         txtMAC3 = (TextView) findViewById(R.id.txtMAC3);
+         txtlevel1 = (TextView) findViewById(R.id.txtlevel1);
+         txtlevel2 = (TextView) findViewById(R.id.txtlevel2);
+         txtlevel3 = (TextView) findViewById(R.id.txtlevel3);
+         txtSSID1.setText(IncomingSMSReceiver.SSID1);
+         txtSSID2.setText(IncomingSMSReceiver.SSID2);
+         txtSSID3.setText(IncomingSMSReceiver.SSID3);
+         txtMAC1.setText(IncomingSMSReceiver.MAC1);
+         txtMAC2.setText(IncomingSMSReceiver.MAC2);
+         txtMAC3.setText(IncomingSMSReceiver.MAC3);
+         txtlevel1.setText(IncomingSMSReceiver.level1);
+         txtlevel2.setText(IncomingSMSReceiver.level2);
+         txtlevel3.setText(IncomingSMSReceiver.level3);
+         System.out.println(IncomingSMSReceiver.MAC3);
+         if (txtSSID1.getText().equals("")){
+             txtSSID1.setText("(No SSID)");
+         }
+         if (txtSSID2.getText().equals("")){
+             txtSSID2.setText("(No SSID)");
+         }
+         if (txtSSID3.getText().equals("")){
+             txtSSID3.setText("(No SSID)");
+         }
      }
 
      public void contactpopup() {
@@ -297,7 +321,6 @@ import java.util.List;
                      String id = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
                      String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                      String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                     String EmailAddr = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA2));
                      SelectUser selectUser = new SelectUser();
                      selectUser.setName(name);
                      selectUser.setPhone(phoneNumber);
