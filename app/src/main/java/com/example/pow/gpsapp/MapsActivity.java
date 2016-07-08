@@ -90,8 +90,8 @@ import java.util.List;
       * See https://g.co/AppIndexing/AndroidStudio for more information.
       */
      private GoogleApiClient client;
-     static double latitude= IncomingSMSReceiver.latitude;
-     static double longitude= IncomingSMSReceiver.longitude;
+     Double latitude= IncomingSMSReceiver.latitude;
+     Double longitude= IncomingSMSReceiver.longitude;
      WifiManager mainWifi;
      WifiReceiver receiverWifi;
      List<ScanResult> wifiList;
@@ -425,18 +425,12 @@ import java.util.List;
              SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                      .findFragmentById(R.id.map);
              mapFragment.getMapAsync(this);
-             LatLng latLng = new LatLng(latitude,longitude);
-             MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-             MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
          if (view.getId() == R.id.btnBack2) {
              setContentView(R.layout.activity_maps);
              SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                      .findFragmentById(R.id.map);
              mapFragment.getMapAsync(this);
-             LatLng latLng = new LatLng(latitude,longitude);
-             MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-             MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
          if (view.getId() == R.id.btnContact) {
              setContentView(R.layout.contactpopup);
@@ -447,7 +441,6 @@ import java.util.List;
              setContentView(R.layout.wifi_list);
              onDestroyView();
              wifi_list();
-
          }
 
      }
@@ -460,7 +453,7 @@ import java.util.List;
              mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
          }
      }
-     
+
 
      public void onSearch(View view) {
          EditText location_tf = (EditText) findViewById(R.id.txtAddress);
@@ -514,9 +507,17 @@ import java.util.List;
              return;
          }
          mMap.setMyLocationEnabled(true);
-         LatLng coordinate = new LatLng(1.3468, 103.9326);
-         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
-         mMap.animateCamera(location);
+        if((IncomingSMSReceiver.latitude==null)&&(IncomingSMSReceiver.longitude==null)) {
+            LatLng coordinate = new LatLng(1.3468, 103.9326);
+            CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
+            mMap.animateCamera(location);
+        }
+         else
+        {
+            LatLng latLng = new LatLng(IncomingSMSReceiver.latitude,IncomingSMSReceiver.longitude);
+            MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+            MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+        }
      }
      @Override
      public void onConnected(Bundle bundle) {

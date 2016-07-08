@@ -23,14 +23,12 @@ public class IncomingSMSReceiver extends BroadcastReceiver{
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     String txtLocation= MapsActivity.txtLocation;
     String txtWifi= MapsActivity.txtWifi;
-    static double latitude,longitude;
+    static Double latitude,longitude;
     public static String wifiresult,SSID1,SSID2,SSID3,MAC1,MAC2,MAC3,level1,level2,level3;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        System.out.println("Test1233");
         if (intent.getAction().equals(SMS_RECEIVED)) {
-            System.out.println("Test123");
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 Object[] pdus = (Object[]) bundle.get("pdus");
@@ -70,29 +68,22 @@ public class IncomingSMSReceiver extends BroadcastReceiver{
                 }
                 if (message.startsWith("AQOZkasQSM"))
                 {
-                    String txtSMS="Thanks";
                     Toast.makeText(context, "Received Location", Toast.LENGTH_SHORT).show();
                     this.abortBroadcast();
-                    sendSMS(sender, txtSMS);
                     String[] separated = message.split(":");
                     String[] latlong = separated[1].split(",");
                     latitude = Double.parseDouble(latlong[0]);
                     longitude = Double.parseDouble(latlong[1]);
-                    System.out.println("ok");
                     LatLng latLng = new LatLng(latitude,longitude);
                     MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
                     MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-                    System.out.println("abc");
+                    System.out.println(latitude);
+                    System.out.println(longitude);
                 }
                 if (message.startsWith("dHJjhnsjJ"))
                 {
-
-                    String txtSMS="Thanks";
                     Toast.makeText(context, "Received Wifi", Toast.LENGTH_SHORT).show();
-
                     this.abortBroadcast();
-                    sendSMS(sender, txtSMS);
-
                     String[] separated = message.split("@");
                     wifiresult=separated[1];
                     MapsActivity.mainLabel.setText(wifiresult);
