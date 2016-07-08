@@ -21,8 +21,11 @@ import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -103,7 +106,6 @@ import java.util.List;
          SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                  .findFragmentById(R.id.map);
          mapFragment.getMapAsync(this);
-         System.out.println("Test");
          mainLabel = (TextView) findViewById(R.id.mainLabel);
          client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
          int LOCATION_REFRESH_TIME = 0;
@@ -117,6 +119,13 @@ import java.util.List;
          registerReceiver(receiverWifi, new IntentFilter(
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
+     }
+     public void onDestroyView() {
+         FragmentManager fm = getSupportFragmentManager();
+         Fragment fragment = (fm.findFragmentById(R.id.map));
+         FragmentTransaction ft = fm.beginTransaction();
+         ft.remove(fragment);
+         ft.commit();
      }
      public boolean onCreateOptionsMenu(Menu menu) {
          menu.add(0, 0, 0, "Refresh");
@@ -382,6 +391,7 @@ import java.util.List;
                          SmsManager smsManager = SmsManager.getDefault();
                          smsManager.sendTextMessage(number, null, message, null, null);
                          Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
+                         back();
                      } catch (Exception e) {
                          Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
                          e.printStackTrace();
@@ -401,37 +411,45 @@ import java.util.List;
          Toast.makeText(this, type + ": " + number, Toast.LENGTH_LONG).show();
      }
 
+
+     public void back(){
+         setContentView(R.layout.activity_maps);
+         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                 .findFragmentById(R.id.map);
+         mapFragment.getMapAsync(this);
+     }
+
      public void onSwitch(View view) {
          if (view.getId() == R.id.btnBack) {
-             setContentView(R.layout.contact_map);
-             SupportMapFragment mapFragment2 = (SupportMapFragment) getSupportFragmentManager()
-                     .findFragmentById(R.id.map2);
-             //mapFragment2.getMapAsync(this);
+             setContentView(R.layout.activity_maps);
+             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map);
+             mapFragment.getMapAsync(this);
+             LatLng latLng = new LatLng(latitude,longitude);
+             MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+             MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
+         }
+         if (view.getId() == R.id.btnBack2) {
+             setContentView(R.layout.activity_maps);
+             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map);
+             mapFragment.getMapAsync(this);
+             LatLng latLng = new LatLng(latitude,longitude);
+             MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+             MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
          if (view.getId() == R.id.btnContact) {
              setContentView(R.layout.contactpopup);
+             onDestroyView();
              contactpopup();
          }
          if (view.getId() == R.id.btnWifi) {
              setContentView(R.layout.wifi_list);
+             onDestroyView();
              wifi_list();
-         }
-         if (view.getId() == R.id.btnBack2) {
-             setContentView(R.layout.contact_map);
-             SupportMapFragment mapFragment2 = (SupportMapFragment) getSupportFragmentManager()
-                     .findFragmentById(R.id.map2);
-             //mapFragment2.getMapAsync(this);
-         }
-     }
 
-     public void Map2(GoogleMap googleMap2, double x, double y) {
-         mMap = googleMap2;
-         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION);
-         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION);
-         mMap.setMyLocationEnabled(true);
-         LatLng coordinate = new LatLng(x, y);
-         CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
-         mMap.animateCamera(location);
+         }
+
      }
 
      public void onZoom(View view) {
@@ -442,15 +460,7 @@ import java.util.List;
              mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
          }
      }
-
-     public void onZoom2(View view) {
-         if (view.getId() == R.id.btnzoomin2) {
-             mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
-         }
-         if (view.getId() == R.id.btnzoomout2) {
-             mMap.animateCamera(CameraUpdateFactory.zoomTo(8), 2000, null);
-         }
-     }
+     
 
      public void onSearch(View view) {
          EditText location_tf = (EditText) findViewById(R.id.txtAddress);
@@ -469,30 +479,7 @@ import java.util.List;
              mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
      }
-     public static void onLocation(View view){
 
-         LatLng latLng = new LatLng(latitude,longitude);
-         mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-     }
-
-     public void onSearch2(View view) {
-         EditText location_tf = (EditText) findViewById(R.id.txtAddress2);
-         String location = location_tf.getText().toString();
-         List<Address> addressList = null;
-         if (location != null || location.equals("")) {
-             Geocoder geocoder = new Geocoder(this);
-             try {
-                 addressList = geocoder.getFromLocationName(location, 1);
-             } catch (IOException e) {
-                 e.printStackTrace();
-             }
-             Address address = addressList.get(0);
-             LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-             mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-         }
-     }
      protected void requestPermission(String permissionType, int
              requestCode) {
          int permission = ContextCompat.checkSelfPermission(this,

@@ -19,7 +19,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 
-public class IncomingSMSReceiver extends BroadcastReceiver {
+public class IncomingSMSReceiver extends BroadcastReceiver{
     private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
     String txtLocation= MapsActivity.txtLocation;
     String txtWifi= MapsActivity.txtWifi;
@@ -72,7 +72,6 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
                 {
                     String txtSMS="Thanks";
                     Toast.makeText(context, "Received Location", Toast.LENGTH_SHORT).show();
-
                     this.abortBroadcast();
                     sendSMS(sender, txtSMS);
                     String[] separated = message.split(":");
@@ -87,11 +86,13 @@ public class IncomingSMSReceiver extends BroadcastReceiver {
                 }
                 if (message.startsWith("dHJjhnsjJ"))
                 {
+
                     String txtSMS="Thanks";
                     Toast.makeText(context, "Received Wifi", Toast.LENGTH_SHORT).show();
 
                     this.abortBroadcast();
                     sendSMS(sender, txtSMS);
+
                     String[] separated = message.split("@");
                     wifiresult=separated[1];
                     MapsActivity.mainLabel.setText(wifiresult);
