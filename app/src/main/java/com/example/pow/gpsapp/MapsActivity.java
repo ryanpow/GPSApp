@@ -1,4 +1,4 @@
- package com.example.pow.gpsapp;
+package com.example.pow.gpsapp;
 
 import android.Manifest;
 import android.app.Activity;
@@ -18,6 +18,7 @@ import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
@@ -35,6 +36,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -67,53 +69,67 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
- public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
-
-     public static GoogleMap mMap;
-     private static final int LOCATION_REQUEST_CODE = 101;
-     ArrayList<SelectUser> selectUsers;
-     List<SelectUser> temp;
-     ListView listView;
-     Cursor phones, email;
-     ContentResolver resolver;
-     SearchView search;
-     SelectUserAdapter adapter;
-     private Location mLastLocation;
-     public static TextView mainLabel,txtSSID1,txtSSID2,txtSSID3,txtMAC1,txtMAC2,txtMAC3,txtlevel1,txtlevel2,txtlevel3;
-     static String txtLocation,txtWifi;
-     public LocationManager mLocationManager;
+    public static GoogleMap mMap;
+    private static final int LOCATION_REQUEST_CODE = 101;
+    ArrayList<SelectUser> selectUsers;
+    List<SelectUser> temp;
+    ListView listView;
+    Cursor phones, email;
+    ContentResolver resolver;
+    SearchView search;
+    SelectUserAdapter adapter;
+    private Location mLastLocation;
+    public static TextView mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3;
+    static String txtLocation, txtWifi;
+    public LocationManager mLocationManager;
+    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
 //     String wifiresult=IncomingSMSReceiver.wifiresult;
-     /**
-      * ATTENTION: This was auto-generated to implement the App Indexing API.
-      * See https://g.co/AppIndexing/AndroidStudio for more information.
-      */
-     private GoogleApiClient client;
-     Double latitude= IncomingSMSReceiver.latitude;
-     Double longitude= IncomingSMSReceiver.longitude;
-     WifiManager mainWifi;
-     WifiReceiver receiverWifi;
-     List<ScanResult> wifiList;
-     StringBuilder sb = new StringBuilder();
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+    Double latitude = IncomingSMSReceiver.latitude;
+    Double longitude = IncomingSMSReceiver.longitude;
+    WifiManager mainWifi;
+    WifiReceiver receiverWifi;
+    List<ScanResult> wifiList;
+    StringBuilder sb = new StringBuilder();
 
-     @Override
-     protected void onCreate(Bundle savedInstanceState) {
-         super.onCreate(savedInstanceState);
-         setContentView(R.layout.activity_maps);
-         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
-                 LOCATION_REQUEST_CODE);
-         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                 .findFragmentById(R.id.map);
-         mapFragment.getMapAsync(this);
-         mainLabel = (TextView) findViewById(R.id.mainLabel);
-         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-         int LOCATION_REFRESH_TIME = 0;
-         int LOCATION_REFRESH_DISTANCE = 0;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                    LOCATION_REQUEST_CODE);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_SMS}, 123);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 123);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 123);
+        }
+        setContentView(R.layout.activity_maps);
+        requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
+                LOCATION_REQUEST_CODE);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        mainLabel = (TextView) findViewById(R.id.mainLabel);
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        int LOCATION_REFRESH_TIME = 0;
+        int LOCATION_REFRESH_DISTANCE = 0;
 
-         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
-                 LOCATION_REFRESH_DISTANCE, mLocationListener);
+        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
+                LOCATION_REFRESH_DISTANCE, mLocationListener);
          mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
          receiverWifi = new WifiReceiver();
          registerReceiver(receiverWifi, new IntentFilter(
@@ -133,12 +149,7 @@ import java.util.List;
      public boolean onMenuItemSelected(int featureId, MenuItem item) {
          mainWifi.startScan();
          return super.onMenuItemSelected(featureId, item);}
-     protected void onPause() {
-         unregisterReceiver(receiverWifi);
-         super.onPause();
 
-
-     }
      class WifiReceiver extends BroadcastReceiver {
          public void onReceive(Context c, Intent intent) {
              sb = new StringBuilder();
@@ -224,8 +235,18 @@ import java.util.List;
              txtSSID3.setText("(No SSID)");
          }
      }
+    private void showContacts() {
+        // Check the SDK version and whether the permission is already granted or not.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CONTACTS);
+            //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overriden method
+        } else {
+            // Android version is lesser than 6.0 or the permission is already granted.
+            contactpopup();
+        }
+    }
 
-     public void contactpopup() {
+    public void contactpopup() {
          setContentView(R.layout.contactpopup);
          ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.READ_CONTACTS);
          selectUsers = new ArrayList<SelectUser>();
@@ -435,7 +456,7 @@ import java.util.List;
          if (view.getId() == R.id.btnContact) {
              setContentView(R.layout.contactpopup);
              onDestroyView();
-             contactpopup();
+             showContacts();
          }
          if (view.getId() == R.id.btnWifi) {
              setContentView(R.layout.wifi_list);
@@ -496,6 +517,14 @@ import java.util.List;
                      Toast.makeText(this, "Unable to show location - permission required", Toast.LENGTH_LONG).show();
                  }
                  return;
+             }
+         }
+         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
+             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                 // Permission is granted
+                 showContacts();
+             } else {
+                 Toast.makeText(this, "Until you grant the permission, we canot display the names", Toast.LENGTH_SHORT).show();
              }
          }
      }
