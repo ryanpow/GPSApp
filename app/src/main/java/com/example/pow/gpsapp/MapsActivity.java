@@ -60,13 +60,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static GoogleMap mMap;
     private static final int LOCATION_REQUEST_CODE = 101;
-    ArrayList<SelectUser> selectUsers;
-    List<SelectUser> temp;
     ListView listView;
     Cursor phones, email;
     ContentResolver resolver;
     SearchView search;
-    SelectUserAdapter adapter;
     private Location mLastLocation;
     public static TextView mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3;
     static String txtLocation, txtWifi;
@@ -221,60 +218,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              txtSSID3.setText("(No SSID)");
          }
      }
-    private void showContacts() {
-        // Check the SDK version and whether the permission is already granted or not.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CONTACTS);
-            //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overriden method
-        } else {
-            // Android version is lesser than 6.0 or the permission is already granted.
-            contactpopup();
-        }
-    }
-
-    public void contactpopup() {
-         setContentView(R.layout.contactpopup);
-         ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.READ_CONTACTS);
-         selectUsers = new ArrayList<SelectUser>();
-         resolver = this.getContentResolver();
-         listView = (ListView) findViewById(R.id.contacts_list);
-
-         phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC");
-         LoadContact loadContact = new LoadContact();
-         loadContact.execute();
-
-         search = (SearchView) findViewById(R.id.searchView);
-
-         //*** setOnQueryTextListener ***
-         search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
-             @Override
-             public boolean onQueryTextSubmit(String query) {
-
-
-                 return false;
-             }
-
-             @Override
-             public boolean onQueryTextChange(String newText) {
-
-                 adapter.filter(newText);
-                 return false;
-             }
-         });
-         (findViewById(R.id.btnSelect)).setOnClickListener(new View.OnClickListener() {
-             @Override
-             public void onClick(View v) {
-                 // user BoD suggests using Intent.ACTION_PICK instead of .ACTION_GET_CONTENT to avoid the chooser
-                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                 // BoD con't: CONTENT_TYPE instead of CONTENT_ITEM_TYPE
-                 intent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-                 startActivityForResult(intent, 1);
-             }
-         });
-
-     }
-
      @Override
      public void onStart() {
          super.onStart();
@@ -316,61 +259,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      }
 
      // Load data on background
-     class LoadContact extends AsyncTask<Void, Void, Void> {
-         @Override
-         protected void onPreExecute() {
-             super.onPreExecute();
 
-         }
-
-         @Override
-         protected Void doInBackground(Void... voids) {
-             // Get Contact list from Phone
-
-             if (phones != null) {
-                 Log.e("count", "" + phones.getCount());
-                 if (phones.getCount() == 0) {
-                     Toast.makeText(MapsActivity.this, "No contacts in your contact list.", Toast.LENGTH_LONG).show();
-                 }
-
-                 while (phones.moveToNext()) {
-                     String id = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
-                     String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                     String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                     SelectUser selectUser = new SelectUser();
-                     selectUser.setName(name);
-                     selectUser.setPhone(phoneNumber);
-                     selectUser.setEmail(id);
-                     selectUser.setCheckedBox(false);
-                     selectUsers.add(selectUser);
-                 }
-             } else {
-                 Log.e("Cursor close 1", "----------------");
-             }
-             //phones.close();
-             return null;
-         }
-
-         @Override
-         protected void onPostExecute(Void aVoid) {
-             super.onPostExecute(aVoid);
-             adapter = new SelectUserAdapter(selectUsers, MapsActivity.this);
-             listView.setAdapter(adapter);
-
-             // Select item on listclick
-             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                 @Override
-                 public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-
-                     Log.e("search", "here---------------- listener");
-
-                     SelectUser data = selectUsers.get(i);
-                 }
-             });
-
-             listView.setFastScrollEnabled(true);
-         }
-     }
 
      protected void onActivityResult(int requestCode, int resultCode, Intent data) {
          if (data != null) {
@@ -442,7 +331,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          if (view.getId() == R.id.btnFriend) {
              setContentView(R.layout.friendlist);
              onDestroyView();
-             showContacts();
          }
          if (view.getId() == R.id.btnWifi) {
              setContentView(R.layout.wifi_list);
@@ -523,14 +411,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      Toast.makeText(this, "Unable to show location - permission required", Toast.LENGTH_LONG).show();
                  }
                  return;
-             }
-         }
-         if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
-             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                 // Permission is granted
-                 showContacts();
-             } else {
-                 Toast.makeText(this, "Until you grant the permission, we canot display the names", Toast.LENGTH_SHORT).show();
              }
          }
      }
