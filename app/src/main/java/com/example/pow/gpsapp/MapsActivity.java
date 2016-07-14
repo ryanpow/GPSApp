@@ -1,7 +1,6 @@
 package com.example.pow.gpsapp;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -9,7 +8,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -20,7 +18,6 @@ import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.ContactsContract;
-import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -28,21 +25,13 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.telephony.SmsMessage;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.PopupWindow;
-import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,7 +40,6 @@ import android.telephony.SmsManager;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -59,8 +47,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.pow.gpsapp.SelectUserAdapter;
-import com.example.pow.gpsapp.SelectUser;
 import com.google.android.gms.common.ConnectionResult;
 
 
@@ -453,8 +439,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      .findFragmentById(R.id.map);
              mapFragment.getMapAsync(this);
          }
-         if (view.getId() == R.id.btnContact) {
-             setContentView(R.layout.contactpopup);
+         if (view.getId() == R.id.btnFriend) {
+             setContentView(R.layout.friendlist);
              onDestroyView();
              showContacts();
          }
@@ -463,7 +449,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              onDestroyView();
              wifi_list();
          }
-
+         if (view.getId() == R.id.btnBackLogin) {
+             setContentView(R.layout.loginmenu);
+         }
+         if (view.getId() == R.id.btnregister) {
+             setContentView(R.layout.registermenu);
+         }
+         if (view.getId() == R.id.btnCode) {
+             setContentView(R.layout.codemenu);
+         }
+         if (view.getId() == R.id.btnBack3) {
+             setContentView(R.layout.activity_maps);
+             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map);
+             mapFragment.getMapAsync(this);
+         }
+         if (view.getId() == R.id.btnBack4) {
+             setContentView(R.layout.activity_maps);
+             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                     .findFragmentById(R.id.map);
+             mapFragment.getMapAsync(this);
+         }
      }
 
      public void onZoom(View view) {
