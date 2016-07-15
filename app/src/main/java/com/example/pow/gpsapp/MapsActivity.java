@@ -405,7 +405,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      }
 
                      Log.i("Send SMS", "");
-                     String message = "Request";
+                     String message = "JSao21zjM";
                      TextView textview = (TextView) findViewById(R.id.txtNumber);
                      textview.setText(number);
                      try {

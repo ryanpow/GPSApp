@@ -44,7 +44,7 @@ public class IncomingSMSReceiver extends BroadcastReceiver{
                 String sender = messages[0].getOriginatingAddress();
                 String message = sb.toString();
 
-                if (message.startsWith("Request"))
+                if (message.startsWith("JSao21zjM"))
                 {
 
                     Toast.makeText(context, "Sending Location", Toast.LENGTH_SHORT).show();
