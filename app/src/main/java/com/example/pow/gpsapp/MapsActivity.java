@@ -57,6 +57,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Objects;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -70,8 +71,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String txtLocation, txtWifi, username, password, sqlStatement, getSQLUsername, getSQLPassword;
+    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword;
     public LocationManager mLocationManager;
+    boolean login=false;
     private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
 //     String wifiresult=IncomingSMSReceiver.wifiresult;
     /**
@@ -166,6 +168,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 sqlStatement = "insert into GPSAccount values(1111,'"+usernametxt.getText()+"','"+passwordtxt.getText()+"')";
                 new WriteDatabase().execute();
+                setContentView(R.layout.loginmenu);
+                login();
             }
         });
     }
@@ -309,18 +313,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
+                txtusername = String.valueOf(usernameText.getText());
+                txtpassword = String.valueOf(passwordText.getText());
                 new ReadDatabase().execute();
-                try {
-                    Thread.sleep(2500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                if(getSQLUsername==usernameText.getText()){
-                    if(getSQLPassword==passwordText.getText()){
-                        generatemap();
-                    }
-                }
-
             }
         });
 
@@ -415,7 +410,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Create and execute an SQL statement that returns some data.
                 String SQL = sqlStatement;
                 stmt = con.createStatement();
-                stmt.executeQuery(SQL);
+                stmt.executeUpdate(SQL);
 
                 Log.w("My Activity", "SQL No Error");
             }
@@ -465,6 +460,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 while (rs.next()) {
                     getSQLUsername= rs.getString("username") ;
                     getSQLPassword=rs.getString("password");
+                    if(getSQLUsername.equals(txtusername) && getSQLPassword.equals(txtpassword)){
+                        System.out.println("OK");
+                        login=true;
+                    }
                 }
                 Log.w("My Activity", "SQL No Error");
             }
@@ -472,10 +471,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 Log.w("My Activity", "SQL Error: "+ ex.toString());
             }
+            try {
+                rs.close();
+                con.close();
+            }
+            catch (Exception e){
+
+            }
+
             return null;
         }
         @Override
         protected void onPostExecute(Void result) {
+            if (login=true){
+                generatemap();
+            }
         }
 
     }
