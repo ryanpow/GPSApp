@@ -103,10 +103,6 @@ public class IncomingSMSReceiver extends BroadcastReceiver{
                     SSID3=wifiinfo3[0];
                     MAC3=wifiinfo3[1];
                     level3=wifiinfo3[2];
-                    System.out.println(wifi3);
-                    System.out.println(wifiinfo1[0]);
-                    System.out.println(wifiinfo3[1]);
-                    System.out.println(MAC3);
                 }
             }
         }

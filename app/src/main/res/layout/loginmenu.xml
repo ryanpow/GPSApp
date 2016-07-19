@@ -51,7 +51,6 @@
         android:layout_height="wrap_content"
         android:text="Login"
         android:id="@+id/btnlogin"
-        android:onClick="onSwitch"
         android:layout_marginTop="47dp"
         android:layout_marginStart="62dp"
         android:layout_below="@+id/passwordText"

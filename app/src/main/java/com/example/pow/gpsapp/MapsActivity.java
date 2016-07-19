@@ -70,8 +70,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ContentResolver resolver;
     SearchView search;
     private Location mLastLocation;
-    public static TextView mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword;
+    public static TextView txtCode,mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
+    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID;
     public LocationManager mLocationManager;
     boolean login=false;
     private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
@@ -87,6 +87,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     WifiReceiver receiverWifi;
     List<ScanResult> wifiList;
     StringBuilder sb = new StringBuilder();
+    private java.util.Random rndGenerator = new java.util.Random();
+    private int testID;
+    public final static int NUMBER_OF_VALUES = 9999;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 123);
         }
         setContentView(R.layout.loginmenu);
+        login=false;
         login();
         requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                 LOCATION_REQUEST_CODE);
@@ -155,18 +159,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      count++;
 
              }
-             System.out.println(sb);
              txtWifi="dHJjhnsjJ@"+sb;
-             System.out.println(txtWifi);
+             sqlStatement = "delete from GPSInfo where UserID='"+UserID+"'";
+             new WriteDatabase().execute();
+             SendInfo();
          }
      }
+    public void SendInfo()
+    {
+        sqlStatement = "insert into GPSInfo values('"+UserID+"','"+txtLocation+"','"+sb+"')";
+        new WriteDatabase().execute();
+    }
     public void Register(){
         usernametxt = (TextView) findViewById(R.id.usernametxt);
         passwordtxt = (TextView) findViewById(R.id.passwordtxt);
         Button btnRegister = (Button) findViewById(R.id.btnsaveregister);
+        testID = rndGenerator.nextInt(NUMBER_OF_VALUES);
+        randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "insert into GPSAccount values(1111,'"+usernametxt.getText()+"','"+passwordtxt.getText()+"')";
+                sqlStatement = "insert into GPSAccount values('"+randomID+"','"+usernametxt.getText()+"','"+passwordtxt.getText()+"')";
                 new WriteDatabase().execute();
                 setContentView(R.layout.loginmenu);
                 login();
@@ -181,10 +193,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
              mLastLocation = location;
 
-             txtLocation = ("AQOZkasQSM"+":"+
-                      String.valueOf(location.getLatitude()) + "," +
-                      String.valueOf(location.getLongitude()));
-             mainLabel.setText(txtLocation);
+             txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
          }
 
          @Override
@@ -223,7 +232,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          txtlevel1.setText(IncomingSMSReceiver.level1);
          txtlevel2.setText(IncomingSMSReceiver.level2);
          txtlevel3.setText(IncomingSMSReceiver.level3);
-         System.out.println(IncomingSMSReceiver.MAC3);
          if (txtSSID1.getText().equals("")){
              txtSSID1.setText("(No SSID)");
          }
@@ -298,6 +306,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
          if (view.getId() == R.id.btnCode) {
              setContentView(R.layout.codemenu);
+             codemenu();
          }
          if (view.getId() == R.id.btnBack3) {
              generatemap();
@@ -306,10 +315,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              generatemap();
          }
      }
+    public void codemenu(){
+        setContentView(R.layout.codemenu);
+        txtCode = (TextView) findViewById(R.id.txtCode);
+        System.out.println(UserID);
+        txtCode.setText(UserID);
+    }
     public void login(){
         usernameText = (TextView) findViewById(R.id.usernameText);
         passwordText = (TextView) findViewById(R.id.passwordText);
         Button btnLogin = (Button) findViewById(R.id.btnlogin);
+        login=false;
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
@@ -460,8 +476,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 while (rs.next()) {
                     getSQLUsername= rs.getString("username") ;
                     getSQLPassword=rs.getString("password");
-                    if(getSQLUsername.equals(txtusername) && getSQLPassword.equals(txtpassword)){
-                        System.out.println("OK");
+                    UserID=rs.getString("userid");
+                    if(getSQLUsername.equals(txtusername)&& getSQLPassword.equals(txtpassword)){
                         login=true;
                     }
                 }
@@ -485,6 +501,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(Void result) {
             if (login=true){
                 generatemap();
+            }
+            else{
+
             }
         }
 
