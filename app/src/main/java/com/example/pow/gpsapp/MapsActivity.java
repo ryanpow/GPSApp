@@ -70,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ContentResolver resolver;
     SearchView search;
     private Location mLastLocation;
-    public static TextView txtCode,mainLabel, txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
+    public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
     static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID;
     public LocationManager mLocationManager;
     boolean login=false;
@@ -160,16 +160,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
              }
              txtWifi="dHJjhnsjJ@"+sb;
-             sqlStatement = "delete from GPSInfo where UserID='"+UserID+"'";
+             sqlStatement = "UPDATE GPSInfo set Wifi='"+sb+"' where UserID='"+UserID+"'";
              new WriteDatabase().execute();
-             SendInfo();
          }
      }
-    public void SendInfo()
-    {
-        sqlStatement = "insert into GPSInfo values('"+UserID+"','"+txtLocation+"','"+sb+"')";
-        new WriteDatabase().execute();
-    }
     public void Register(){
         usernametxt = (TextView) findViewById(R.id.usernametxt);
         passwordtxt = (TextView) findViewById(R.id.passwordtxt);
@@ -178,7 +172,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "insert into GPSAccount values('"+randomID+"','"+usernametxt.getText()+"','"+passwordtxt.getText()+"')";
+                sqlStatement = "insert into GPSAccount values('"+randomID+"','"+usernametxt.getText()+"','"+passwordtxt.getText()+"');insert into GPSInfo values('"+randomID+"','null','null')";
                 new WriteDatabase().execute();
                 setContentView(R.layout.loginmenu);
                 login();
@@ -194,6 +188,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              mLastLocation = location;
 
              txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
+             sqlStatement = "UPDATE GPSInfo set Location='"+txtLocation+"' where UserID='"+UserID+"'";
          }
 
          @Override
@@ -313,13 +308,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
          if (view.getId() == R.id.btnBack4) {
              generatemap();
+
          }
      }
     public void codemenu(){
         setContentView(R.layout.codemenu);
         txtCode = (TextView) findViewById(R.id.txtCode);
-        System.out.println(UserID);
+        txtAdd = (TextView) findViewById(R.id.txtAdd);
+        Button btnAdd = (Button) findViewById(R.id.btnAdd);
         txtCode.setText(UserID);
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+txtAdd.getText()+"')";
+                new WriteDatabase().execute();
+            }
+        });
     }
     public void login(){
         usernameText = (TextView) findViewById(R.id.usernameText);
@@ -441,7 +444,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
     }
-
     private class ReadDatabase extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
@@ -499,7 +501,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         @Override
         protected void onPostExecute(Void result) {
-            if (login=true){
+            if (login==true){
                 generatemap();
             }
             else{

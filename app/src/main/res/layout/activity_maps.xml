@@ -75,7 +75,7 @@
             android:layout_height="wrap_content"
             android:text="Add"
             android:id="@+id/btnCode"
-
+            android:onClick="onSwitch"
             android:layout_below="@+id/txtAddress"
             android:layout_alignParentEnd="true"
             android:layout_toEndOf="@+id/btnWifi" />
