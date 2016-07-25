@@ -2,6 +2,7 @@ package com.example.pow.gpsapp;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -31,10 +32,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,8 +58,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -65,21 +72,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static GoogleMap mMap;
     private static final int LOCATION_REQUEST_CODE = 101;
-    ListView listView;
-    Cursor phones, email;
+    ListView friendList;
     ContentResolver resolver;
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID;
+    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false;
-    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
-//     String wifiresult=IncomingSMSReceiver.wifiresult;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
     private GoogleApiClient client;
     Double latitude = IncomingSMSReceiver.latitude;
     Double longitude = IncomingSMSReceiver.longitude;
@@ -90,6 +90,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private java.util.Random rndGenerator = new java.util.Random();
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
+    SimpleAdapter ADAhere;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -284,6 +285,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
          if (view.getId() == R.id.btnFriend) {
              setContentView(R.layout.friendlist);
+             friendlist();
              onDestroyView();
          }
          if (view.getId() == R.id.btnWifi) {
@@ -297,10 +299,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
          if (view.getId() == R.id.btnregister) {
              setContentView(R.layout.registermenu);
+             onDestroyView();
              Register();
          }
          if (view.getId() == R.id.btnCode) {
              setContentView(R.layout.codemenu);
+             onDestroyView();
              codemenu();
          }
          if (view.getId() == R.id.btnBack3) {
@@ -334,7 +338,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
                 txtusername = String.valueOf(usernameText.getText());
                 txtpassword = String.valueOf(passwordText.getText());
-                new ReadDatabase().execute();
+                new ReadAccountDatabase().execute();
             }
         });
 
@@ -401,6 +405,86 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              }
          }
      }
+    public void friendlist(){
+        setContentView(R.layout.friendlist);
+        friendList = (ListView) findViewById(R.id.friendList);
+        sqlStatement = "select * from GPSFriend where UserID='"+UserID+"'";
+        new ReadFriendDatabase().execute();
+        //friendList.setAdapter(ADAhere);
+        friendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                // TODO Auto-generated method stub
+                HashMap<String, Object> obj = (HashMap<String, Object>) ADAhere
+                        .getItem(position);
+                String VehicleId = (String) obj.get("A");
+                Toast.makeText(MapsActivity.this, VehicleId, Toast.LENGTH_LONG)
+                        .show();
+            }
+        });
+
+    }
+    private class ReadFriendDatabase extends AsyncTask<Void, Void, Void> {
+        ProgressDialog dialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            dialog = ProgressDialog.show(MapsActivity.this, "Loading",
+                    "Please Wait", true);
+        }
+        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
+            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
+            String driver = "net.sourceforge.jtds.jdbc.Driver";
+            String userName = "RyanPow";
+            String password = "password123";
+            // Declare the JDBC objects.
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try
+            {
+                // Establish the connection.
+                Class.forName(driver);
+                con = DriverManager.getConnection(url, userName, password);
+                // Create and execute an SQL statement that returns some data.
+                String SQL = sqlStatement;
+                stmt = con.createStatement();
+                rs = stmt.executeQuery(SQL);
+                List<Map<String, String>> data = null;
+                data = new ArrayList<Map<String, String>>();
+
+                // Iterate through the data in the result set and display it.
+                while (rs.next()) {
+                    Map<String, String> datanum = new HashMap<String, String>();
+                    datanum.put("A", rs.getString("FriendUserID"));
+                    data.add(datanum);
+                }
+                String[] fromwhere = { "A" };
+                int[] viewswhere = { R.id.lblname };
+                ADAhere = new SimpleAdapter(MapsActivity.this, data,
+                        R.layout.listadapter, fromwhere, viewswhere);
+                Log.w("My Activity", "SQL No Error");
+            }
+            catch(Exception ex)
+            {
+                Log.w("My Activity", "SQL Error: "+ ex.toString());
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            dialog.dismiss();
+            friendList.setAdapter(ADAhere);
+        }
+
+    }
     private class WriteDatabase extends AsyncTask<Void, Void, Void> {
             @Override
             protected void onPreExecute() {
@@ -444,7 +528,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
     }
-    private class ReadDatabase extends AsyncTask<Void, Void, Void> {
+    private class ReadAccountDatabase extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -505,11 +589,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 generatemap();
             }
             else{
-
             }
         }
 
     }
+
 
      @Override
      public void onMapReady(GoogleMap googleMap) {
