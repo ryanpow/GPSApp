@@ -77,7 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String CodeUsername,txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false;
     private GoogleApiClient client;
@@ -91,6 +91,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
     SimpleAdapter ADAhere;
+    ArrayList<String> userid = new ArrayList<>();
+    List<Map<String, String>> data = null;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -161,7 +165,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
              }
              txtWifi="dHJjhnsjJ@"+sb;
-             sqlStatement = "UPDATE GPSInfo set Wifi='"+sb+"' where UserID='"+UserID+"'";
+             sqlStatement = "UPDATE GPSAccount set Wifi='"+sb+"' where UserID='"+UserID+"'";
              new WriteDatabase().execute();
          }
      }
@@ -173,10 +177,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "insert into GPSAccount values('"+randomID+"','"+usernametxt.getText()+"','"+passwordtxt.getText()+"');insert into GPSInfo values('"+randomID+"','null','null')";
-                new WriteDatabase().execute();
-                setContentView(R.layout.loginmenu);
-                login();
+//                sqlStatement = "select * from GPSAccount";
+//                if() {
+                    sqlStatement = "insert into GPSAccount values('" + randomID + "','" + usernametxt.getText() + "','" + passwordtxt.getText() + "','null','null')";
+                    new WriteDatabase().execute();
+                    setContentView(R.layout.loginmenu);
+                    login();
+//                }
             }
         });
     }
@@ -189,7 +196,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              mLastLocation = location;
 
              txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
-             sqlStatement = "UPDATE GPSInfo set Location='"+txtLocation+"' where UserID='"+UserID+"'";
+             sqlStatement = "UPDATE GPSAccount set Location='"+txtLocation+"' where UserID='"+UserID+"'";
+             new WriteDatabase().execute();
          }
 
          @Override
@@ -299,7 +307,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
          if (view.getId() == R.id.btnregister) {
              setContentView(R.layout.registermenu);
-             onDestroyView();
              Register();
          }
          if (view.getId() == R.id.btnCode) {
@@ -323,8 +330,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         txtCode.setText(UserID);
         btnAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+txtAdd.getText()+"')";
-                new WriteDatabase().execute();
+                sqlStatement = "Select username from GPSAccount where UserID='"+txtAdd.getText()+"'";
+                new ReadCodeDatabase().execute();
+                generatemap();
             }
         });
     }
@@ -409,8 +417,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.friendlist);
         friendList = (ListView) findViewById(R.id.friendList);
         sqlStatement = "select * from GPSFriend where UserID='"+UserID+"'";
+        data = new ArrayList<Map<String, String>>();
         new ReadFriendDatabase().execute();
-        //friendList.setAdapter(ADAhere);
         friendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
@@ -448,39 +456,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Connection con = null;
             Statement stmt = null;
             ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(SQL);
-                List<Map<String, String>> data = null;
-                data = new ArrayList<Map<String, String>>();
-
-                // Iterate through the data in the result set and display it.
-                while (rs.next()) {
-                    Map<String, String> datanum = new HashMap<String, String>();
-                    datanum.put("A", rs.getString("FriendUserID"));
-                    data.add(datanum);
-                }
-                String[] fromwhere = { "A" };
-                int[] viewswhere = { R.id.lblname };
-                ADAhere = new SimpleAdapter(MapsActivity.this, data,
-                        R.layout.listadapter, fromwhere, viewswhere);
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
+                    try {
+                        // Establish the connection.
+                        Class.forName(driver);
+                        con = DriverManager.getConnection(url, userName, password);
+                        // Create and execute an SQL statement that returns some data.
+                        String SQL = sqlStatement;
+                        stmt = con.createStatement();
+                        rs = stmt.executeQuery(SQL);
+                        // Iterate through the data in the result set and display it.
+                        while (rs.next()) {
+                            Map<String, String> datanum = new HashMap<String, String>();
+                            datanum.put("A", rs.getString("Friendlist"));
+                            data.add(datanum);
+                        }
+                        Log.w("My Activity", "SQL No Error");
+                    } catch (Exception ex) {
+                        Log.w("My Activity", "SQL Error: " + ex.toString());
+                    }
             return null;
         }
         @Override
         protected void onPostExecute(Void result) {
             dialog.dismiss();
+            String[] fromwhere = {"A"};
+            int[] viewswhere = {R.id.lblname};
+            ADAhere = new SimpleAdapter(MapsActivity.this, data,
+                    R.layout.listadapter, fromwhere, viewswhere);
             friendList.setAdapter(ADAhere);
         }
 
@@ -589,12 +591,73 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 generatemap();
             }
             else{
+
             }
         }
 
     }
+    private class ReadCodeDatabase extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
+            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
+            String driver = "net.sourceforge.jtds.jdbc.Driver";
+            String userName = "RyanPow";
+            String password = "password123";
+            // Declare the JDBC objects.
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try
+            {
+                // Establish the connection.
+                Class.forName(driver);
+                con = DriverManager.getConnection(url, userName, password);
+                // Create and execute an SQL statement that returns some data.
+                String SQL = sqlStatement;
+                stmt = con.createStatement();
+                rs = stmt.executeQuery(SQL);
 
+                /* Iterate through the data in the result set and display it. */
+                while (rs.next()) {
+                    CodeUsername= rs.getString("username") ;
+                }
+                Log.w("My Activity", "SQL No Error");
+            }
+            catch(Exception ex)
+            {
+                Log.w("My Activity", "SQL Error: "+ ex.toString());
+            }
+            try {
+                rs.close();
+                con.close();
+            }
+            catch (Exception e){
+
+            }
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            if (login==true){
+                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+CodeUsername+"')";
+                new WriteDatabase().execute();
+            }
+            else{
+
+            }
+        }
+
+    }
      @Override
      public void onMapReady(GoogleMap googleMap) {
          mMap = googleMap;
