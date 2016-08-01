@@ -2,10 +2,12 @@ package com.example.pow.gpsapp;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -77,9 +79,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String CodeUsername,txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String CheckUsername,passwordregister,usernameregister,CodeUsername,txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
-    boolean login=false;
+    boolean login=false,account=false,codecheck=false;
     private GoogleApiClient client;
     Double latitude = IncomingSMSReceiver.latitude;
     Double longitude = IncomingSMSReceiver.longitude;
@@ -177,15 +179,90 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-//                sqlStatement = "select * from GPSAccount";
-//                if() {
-                    sqlStatement = "insert into GPSAccount values('" + randomID + "','" + usernametxt.getText() + "','" + passwordtxt.getText() + "','null','null')";
-                    new WriteDatabase().execute();
-                    setContentView(R.layout.loginmenu);
-                    login();
-//                }
+                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
+                usernameregister = String.valueOf(usernametxt.getText());
+                passwordregister = String.valueOf(passwordtxt.getText());
+                new CheckRegisterDatabase().execute();
             }
         });
+    }
+    private class CheckRegisterDatabase extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
+            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
+            String driver = "net.sourceforge.jtds.jdbc.Driver";
+            String userName = "RyanPow";
+            String password = "password123";
+            // Declare the JDBC objects.
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try
+            {
+                // Establish the connection.
+                Class.forName(driver);
+                con = DriverManager.getConnection(url, userName, password);
+                // Create and execute an SQL statement that returns some data.
+                String SQL = sqlStatement;
+                stmt = con.createStatement();
+                rs = stmt.executeQuery(SQL);
+
+                /* Iterate through the data in the result set and display it. */
+                while (rs.next()) {
+                    getSQLUsername= rs.getString("username") ;
+                    getSQLPassword=rs.getString("password");
+                    UserID=rs.getString("userid");
+                    if(getSQLUsername.equals(usernameregister)){
+                        account=true;
+                    }
+                }
+                Log.w("My Activity", "SQL No Error");
+            }
+            catch(Exception ex)
+            {
+                Log.w("My Activity", "SQL Error: "+ ex.toString());
+            }
+            try {
+                rs.close();
+                con.close();
+            }
+            catch (Exception e){
+
+            }
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            if (account==true) {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("Username has been taken")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+            else{
+                sqlStatement = "insert into GPSAccount values('" + randomID + "','" + usernametxt.getText() + "','" + passwordtxt.getText() + "','null','null')";
+                new WriteDatabase().execute();
+                setContentView(R.layout.loginmenu);
+                login();
+            }
+        }
+
     }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
@@ -332,7 +409,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 sqlStatement = "Select username from GPSAccount where UserID='"+txtAdd.getText()+"'";
                 new ReadCodeDatabase().execute();
-                generatemap();
             }
         });
     }
@@ -591,7 +667,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 generatemap();
             }
             else{
-
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("Incorrect Username or Password")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
             }
         }
 
@@ -648,16 +733,87 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         @Override
         protected void onPostExecute(Void result) {
-            if (login==true){
-                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+CodeUsername+"')";
-                new WriteDatabase().execute();
-            }
-            else{
-
+                sqlStatement = "Select * from GPSFriend where Friendlist='"+CodeUsername+"'";
+                new CheckCodeDatabase().execute();
             }
         }
+    private class CheckCodeDatabase extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .permitAll().build();
+            StrictMode.setThreadPolicy(policy);
 
+            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
+            String driver = "net.sourceforge.jtds.jdbc.Driver";
+            String userName = "RyanPow";
+            String password = "password123";
+            // Declare the JDBC objects.
+            Connection con = null;
+            Statement stmt = null;
+            ResultSet rs = null;
+            try
+            {
+                // Establish the connection.
+                Class.forName(driver);
+                con = DriverManager.getConnection(url, userName, password);
+                // Create and execute an SQL statement that returns some data.
+                String SQL = sqlStatement;
+                stmt = con.createStatement();
+                rs = stmt.executeQuery(SQL);
+
+                /* Iterate through the data in the result set and display it. */
+                while (rs.next()) {
+                    CheckUsername= rs.getString("friendlist") ;
+                    if(CheckUsername.equals(CodeUsername)){
+                        codecheck=true;
+                    }
+                }
+                Log.w("My Activity", "SQL No Error");
+            }
+            catch(Exception ex)
+            {
+                Log.w("My Activity", "SQL Error: "+ ex.toString());
+            }
+            try {
+                rs.close();
+                con.close();
+            }
+            catch (Exception e){
+
+            }
+
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            if (codecheck==true){
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("This account is already in your friend list")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+
+            }
+            else{
+                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+CodeUsername+"')";
+                new WriteDatabase().execute();
+                generatemap();
+            }
+        }
     }
+
+
      @Override
      public void onMapReady(GoogleMap googleMap) {
          mMap = googleMap;
