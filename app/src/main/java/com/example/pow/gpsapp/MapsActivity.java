@@ -56,6 +56,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.ConnectionResult;
 
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -133,6 +142,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
+    private class Register extends AsyncTask<Void, Void, Void> {
+        ProgressDialog pDialog;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Showing progress dialog
+            pDialog = new ProgressDialog(MapsActivity.this);
+            pDialog.setMessage("Please wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
+
+        }
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://php-agkh1995.rhcloud.com/futsalin.php");//http://php-agkh1995.rhcloud.com/add.php");
+            // add start end and booking fac
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+
+
+                nameValuePairs.add(new BasicNameValuePair("STATUS", "Booked")); // change for booking
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = httpclient.execute(httppost);
+                System.out.println("HTTP Response: "+response);
+            } catch (ClientProtocolException e) {
+                System.out.println("HTTP Response1 : "+e);
+            } catch (IOException e) {
+                System.out.println("HTTP Response2 : "+e);
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            // Dismiss the progress dialog
+            if (pDialog.isShowing())
+                pDialog.dismiss();
+
+        }
+
+    }
      public void onDestroyView() {
          FragmentManager fm = getSupportFragmentManager();
          Fragment fragment = (fm.findFragmentById(R.id.map));
