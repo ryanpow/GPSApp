@@ -88,7 +88,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String CheckUsername,passwordregister,usernameregister,CodeUsername,txtLocation, txtWifi, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false,account=false,codecheck=false;
     private GoogleApiClient client;
@@ -142,7 +142,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
-    private class Register extends AsyncTask<Void, Void, Void> {
+    private class Update extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+
+        }
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            // add start end and booking fac
+            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+
+
+                nameValuePairs.add(new BasicNameValuePair("UserID", randomID));
+                nameValuePairs.add(new BasicNameValuePair("Username", String.valueOf(usernametxt)));
+                nameValuePairs.add(new BasicNameValuePair("Password", String.valueOf(passwordtxt)));
+                nameValuePairs.add(new BasicNameValuePair("Location", "null"));
+                nameValuePairs.add(new BasicNameValuePair("Wifi", "null"));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = httpclient.execute(httppost);
+                System.out.println("HTTP Response: "+response);
+            } catch (ClientProtocolException e) {
+                System.out.println("HTTP Response1 : "+e);
+            } catch (IOException e) {
+                System.out.println("HTTP Response2 : "+e);
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+        }
+
+    }
+    private class Registerxml extends AsyncTask<Void, Void, Void> {
         ProgressDialog pDialog;
         @Override
         protected void onPreExecute() {
@@ -158,14 +198,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://php-agkh1995.rhcloud.com/futsalin.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
             // add start end and booking fac
+            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
                 // Add your data
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
 
-                nameValuePairs.add(new BasicNameValuePair("STATUS", "Booked")); // change for booking
+                nameValuePairs.add(new BasicNameValuePair("UserID", "2132"));
+                nameValuePairs.add(new BasicNameValuePair("Location", txtLocation));
+                nameValuePairs.add(new BasicNameValuePair("Wifi", String.valueOf(sb)));
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
                 HttpResponse response = httpclient.execute(httppost);
@@ -220,9 +263,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      count++;
 
              }
-             txtWifi="dHJjhnsjJ@"+sb;
-             sqlStatement = "UPDATE GPSAccount set Wifi='"+sb+"' where UserID='"+UserID+"'";
-             new WriteDatabase().execute();
+             new Update().execute();
+//             sqlStatement = "UPDATE GPSAccount set Wifi='"+sb+"' where UserID='"+UserID+"'";
+//             new WriteDatabase().execute();
          }
      }
     public void Register(){
@@ -233,10 +276,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
-                usernameregister = String.valueOf(usernametxt.getText());
-                passwordregister = String.valueOf(passwordtxt.getText());
-                new CheckRegisterDatabase().execute();
+                new Registerxml().execute();
+//                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
+//                usernameregister = String.valueOf(usernametxt.getText());
+//                passwordregister = String.valueOf(passwordtxt.getText());
+//                new CheckRegisterDatabase().execute();
             }
         });
     }
@@ -327,8 +371,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              mLastLocation = location;
 
              txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
-             sqlStatement = "UPDATE GPSAccount set Location='"+txtLocation+"' where UserID='"+UserID+"'";
-             new WriteDatabase().execute();
+             new Update().execute();
+//             sqlStatement = "UPDATE GPSAccount set Location='"+txtLocation+"' where UserID='"+UserID+"'";
+//             new WriteDatabase().execute();
          }
 
          @Override
@@ -461,8 +506,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         txtCode.setText(UserID);
         btnAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "Select username from GPSAccount where UserID='"+txtAdd.getText()+"'";
-                new ReadCodeDatabase().execute();
+                new AddCode().execute();
+//                sqlStatement = "Select username from GPSAccount where UserID='"+txtAdd.getText()+"'";
+//                new ReadCodeDatabase().execute();
             }
         });
     }
@@ -865,6 +911,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 generatemap();
             }
         }
+    }
+    private class AddCode extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+
+        }
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            // add start end and booking fac
+            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+
+
+                nameValuePairs.add(new BasicNameValuePair("UserID", UserID));
+                nameValuePairs.add(new BasicNameValuePair("FriendList", CodeUsername));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = httpclient.execute(httppost);
+                System.out.println("HTTP Response: "+response);
+            } catch (ClientProtocolException e) {
+                System.out.println("HTTP Response1 : "+e);
+            } catch (IOException e) {
+                System.out.println("HTTP Response2 : "+e);
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
+        }
+
     }
 
 
