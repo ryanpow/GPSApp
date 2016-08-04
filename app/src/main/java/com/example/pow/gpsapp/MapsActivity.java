@@ -64,8 +64,12 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -98,12 +102,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     WifiReceiver receiverWifi;
     List<ScanResult> wifiList;
     StringBuilder sb = new StringBuilder();
+    ArrayList<String> ReadUserID = new ArrayList<>();
+    ArrayList<String> ReadUsername = new ArrayList<>();
+    ArrayList<String> ReadPassword = new ArrayList<>();
+    ArrayList<String> ReadLocation = new ArrayList<>();
+    static ArrayList<String> ReadWifi = new ArrayList<>();
     private java.util.Random rndGenerator = new java.util.Random();
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
     SimpleAdapter ADAhere;
-    ArrayList<String> userid = new ArrayList<>();
     List<Map<String, String>> data = null;
+    public String ReadGPSAccountURL = "http://readgps-ryanpow.rhcloud.com/testXML.jsp";
+
 
 
 
@@ -142,6 +152,119 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
+    private class ReadGPSAccount extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                System.out.println("fadadsa");
+                return ReadGPSAccountXML(ReadGPSAccountURL);
+            } catch (IOException e) {
+                System.out.println("IO Error: " + e);
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            System.out.println("test");
+            for(int x=0; x<ReadUserID.size(); x++){
+
+                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
+                {
+                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
+                        System.out.println(ReadUsername.get(x));
+                        System.out.println(ReadPassword.get(x));
+                        System.out.println("hi");
+                        UserID=ReadUserID.get(x);
+                        generatemap();
+                        break;
+                    }
+                }
+
+            }
+
+        }
+    }
+    private class CheckRegister extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSAccountXML(ReadGPSAccountURL);
+
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
+                {
+                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
+                        UserID=ReadUserID.get(x);
+                        generatemap();
+                        break;
+                    }
+                }
+
+            }
+
+        }
+    }
+    private String ReadGPSAccountXML(String urlString) throws XmlPullParserException, IOException {
+        InputStream stream = null;
+        // Instantiate the parser
+        GPSAccountClass stackOverflowXmlParser = new GPSAccountClass();
+        List<GPSAccountClass.gpsEntry> entries = null;
+        StringBuilder htmlString = new StringBuilder();
+
+        try {
+            stream = downloadUrl(urlString);
+            entries = stackOverflowXmlParser.parse(stream);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+        // Store Objects
+        for (GPSAccountClass.gpsEntry gps : entries) {
+            ReadUserID.add(gps.UserID);
+            System.out.println(gps.UserID);
+        }
+        for (GPSAccountClass.gpsEntry gps : entries) {
+            ReadUsername.add(gps.Username);
+        }
+        for (GPSAccountClass.gpsEntry gps : entries) {
+            ReadPassword.add(gps.Password);
+        }
+        for (GPSAccountClass.gpsEntry gps : entries) {
+            ReadLocation.add(gps.Location);
+        }
+        for (GPSAccountClass.gpsEntry gps : entries) {
+            ReadWifi.add(gps.Wifi);
+        }
+        return htmlString.toString();
+    }
+
+    //XML DOWNLOAD\\
+    private InputStream downloadUrl(String urlString) throws IOException {
+        java.net.URL url = new URL(urlString);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(10000 /* milliseconds */);
+        conn.setConnectTimeout(15000 /* milliseconds */);
+        conn.setRequestMethod("GET");
+        conn.setDoInput(true);
+        // Starts the query
+        conn.connect();
+        return conn.getInputStream();
+    }//XML DOWNLOAD\\
     private class Update extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
@@ -204,8 +327,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             try {
                 // Add your data
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-
-
                 nameValuePairs.add(new BasicNameValuePair("UserID", "2132"));
                 nameValuePairs.add(new BasicNameValuePair("Location", txtLocation));
                 nameValuePairs.add(new BasicNameValuePair("Wifi", String.valueOf(sb)));
@@ -226,7 +347,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Dismiss the progress dialog
             if (pDialog.isShowing())
                 pDialog.dismiss();
-
         }
 
     }
@@ -243,7 +363,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      public boolean onMenuItemSelected(int featureId, MenuItem item) {
          mainWifi.startScan();
          return super.onMenuItemSelected(featureId, item);}
-
      class WifiReceiver extends BroadcastReceiver {
          public void onReceive(Context c, Intent intent) {
              sb = new StringBuilder();
@@ -261,7 +380,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      sb.append(String.valueOf(result.level));
                      sb.append("!");
                      count++;
-
              }
              new Update().execute();
 //             sqlStatement = "UPDATE GPSAccount set Wifi='"+sb+"' where UserID='"+UserID+"'";
@@ -276,6 +394,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                ReadWifi = new ArrayList<>();
                 new Registerxml().execute();
 //                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
 //                usernameregister = String.valueOf(usernametxt.getText());
@@ -295,7 +414,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                     .permitAll().build();
             StrictMode.setThreadPolicy(policy);
-
             String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
             String driver = "net.sourceforge.jtds.jdbc.Driver";
             String userName = "RyanPow";
@@ -313,7 +431,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String SQL = sqlStatement;
                 stmt = con.createStatement();
                 rs = stmt.executeQuery(SQL);
-
                 /* Iterate through the data in the result set and display it. */
                 while (rs.next()) {
                     getSQLUsername= rs.getString("username") ;
@@ -334,9 +451,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 con.close();
             }
             catch (Exception e){
-
             }
-
             return null;
         }
         @Override
@@ -360,16 +475,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 login();
             }
         }
-
     }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
          public void onLocationChanged(Location location) {
              //code
              System.out.println("onLocationChanged");
-
              mLastLocation = location;
-
              txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
              new Update().execute();
 //             sqlStatement = "UPDATE GPSAccount set Location='"+txtLocation+"' where UserID='"+UserID+"'";
@@ -519,10 +631,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         login=false;
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
-                txtusername = String.valueOf(usernameText.getText());
-                txtpassword = String.valueOf(passwordText.getText());
-                new ReadAccountDatabase().execute();
+                new ReadGPSAccount().execute();
+
+//                sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
+//                txtusername = String.valueOf(usernameText.getText());
+//                txtpassword = String.valueOf(passwordText.getText());
+//                new ReadAccountDatabase().execute();
             }
         });
 
