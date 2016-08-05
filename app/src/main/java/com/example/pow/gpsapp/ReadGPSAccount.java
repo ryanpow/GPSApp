@@ -10,8 +10,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GPSAccountClass {
-    // We don't use namespaces
+public class ReadGPSAccount {
     private static final String ns = null;
 
     public List parse(InputStream in) throws XmlPullParserException, IOException {
@@ -63,11 +62,11 @@ public class GPSAccountClass {
 // to their respective "read" methods for processing. Otherwise, skips the tag.
     private gpsEntry readEntry(XmlPullParser parser) throws XmlPullParserException, IOException {
         parser.require(XmlPullParser.START_TAG, ns, "user");
-        String UserID = null;
-        String Username = null;
-        String Password = null;
-        String Location = null;
-        String Wifi = null;
+        String UserID2 = null;
+        String Username2 = null;
+        String Password2 = null;
+        String Location2 = null;
+        String Wifi2 = null;
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -75,22 +74,22 @@ public class GPSAccountClass {
             }
             String name = parser.getName();
             if (name.equals("UserID")) {
-                UserID = readUserID(parser);
+                UserID2= readUserID(parser);
             } else if (name.equals("Username")) {
-                Username = readUsername(parser);
+                Username2= readUsername(parser);
             } else if (name.equals("Password")) {
-                Password = readPassword(parser);
+                Password2= readPassword(parser);
             } else if (name.equals("Location")) {
-                Location= readLocation(parser);
+                Location2= readLocation(parser);
             } else if (name.equals("Wifi")) {
-                Wifi = readWifi(parser);
+                Wifi2 = readWifi(parser);
             }
 
             else {
                 skip(parser);
             }
         }
-        return new gpsEntry(UserID, Username, Password,Location, Wifi );
+        return new gpsEntry(UserID2, Username2, Password2, Location2, Wifi2 );
     }
 
     // Processes title tags in the feed.
@@ -109,13 +108,13 @@ public class GPSAccountClass {
     }
 
     private String readPassword(XmlPullParser parser) throws IOException, XmlPullParserException {
-        parser.require(XmlPullParser.START_TAG, ns, "password");
+        parser.require(XmlPullParser.START_TAG, ns, "Password");
         String title = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "Password");
         return title;
     }
 
-    private String readWifi(XmlPullParser parser) throws IOException, XmlPullParserException {
+    private String readLocation(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Location");
         String title = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "Location");
@@ -123,11 +122,11 @@ public class GPSAccountClass {
     }
 
     // Processes summary tags in the feed.
-    private String readLocation(XmlPullParser parser) throws IOException, XmlPullParserException {
+    private String readWifi(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Wifi");
-        String summary = readText(parser);
+        String title = readText(parser);
         parser.require(XmlPullParser.END_TAG, ns, "Wifi");
-        return summary;
+        return title;
     }
 
     // For the tags title and summary, extracts their text values.

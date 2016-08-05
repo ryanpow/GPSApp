@@ -92,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String print,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false,account=false,codecheck=false;
     private GoogleApiClient client;
@@ -106,13 +106,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> ReadUsername = new ArrayList<>();
     ArrayList<String> ReadPassword = new ArrayList<>();
     ArrayList<String> ReadLocation = new ArrayList<>();
-    static ArrayList<String> ReadWifi = new ArrayList<>();
+    ArrayList<String> ReadWifi = new ArrayList<>();
     private java.util.Random rndGenerator = new java.util.Random();
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
     SimpleAdapter ADAhere;
     List<Map<String, String>> data = null;
-    public String ReadGPSAccountURL = "http://readgps-ryanpow.rhcloud.com/testXML.jsp";
+    String ReadGPSAccountURL="http://readgps-ryanpow.rhcloud.com/testXML.jsp";
 
 
 
@@ -152,41 +152,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
-    private class ReadGPSAccount extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            try {
-                System.out.println("fadadsa");
-                return ReadGPSAccountXML(ReadGPSAccountURL);
-            } catch (IOException e) {
-                System.out.println("IO Error: " + e);
-                return ("IO Error: " + e);
-            } catch (XmlPullParserException e) {
-                return ("XML Error: " + e);
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            System.out.println("test");
-            for(int x=0; x<ReadUserID.size(); x++){
-
-                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
-                {
-                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
-                        System.out.println(ReadUsername.get(x));
-                        System.out.println(ReadPassword.get(x));
-                        System.out.println("hi");
-                        UserID=ReadUserID.get(x);
-                        generatemap();
-                        break;
-                    }
-                }
-
-            }
-
-        }
-    }
     private class CheckRegister extends AsyncTask<String, Void, String> {
 
         @Override
@@ -218,11 +183,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
+    private class LoginGPSAccount extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                System.out.println("fadadsa");
+                return ReadGPSAccountXML(ReadGPSAccountURL);
+            } catch (IOException e) {
+                System.out.println("IO Error: " + e);
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            System.out.println("test");
+            System.out.println(ReadUserID.size());
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
+                {
+                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
+                        System.out.println(ReadUsername.get(x));
+                        System.out.println(ReadPassword.get(x));
+                        System.out.println("hi");
+                        UserID=ReadUserID.get(x);
+                        generatemap();
+                        break;
+                    }
+                }
+
+            }
+
+        }
+    }
+
     private String ReadGPSAccountXML(String urlString) throws XmlPullParserException, IOException {
+        System.out.println("ReadAccountGPS");
         InputStream stream = null;
         // Instantiate the parser
-        GPSAccountClass stackOverflowXmlParser = new GPSAccountClass();
-        List<GPSAccountClass.gpsEntry> entries = null;
+        ReadGPSAccount stackOverflowXmlParser = new ReadGPSAccount();
+        List<ReadGPSAccount.gpsEntry> entries = null;
         StringBuilder htmlString = new StringBuilder();
 
         try {
@@ -234,20 +236,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         // Store Objects
-        for (GPSAccountClass.gpsEntry gps : entries) {
+        for (ReadGPSAccount.gpsEntry gps : entries) {
             ReadUserID.add(gps.UserID);
             System.out.println(gps.UserID);
         }
-        for (GPSAccountClass.gpsEntry gps : entries) {
+        for (ReadGPSAccount.gpsEntry gps : entries) {
             ReadUsername.add(gps.Username);
         }
-        for (GPSAccountClass.gpsEntry gps : entries) {
+        for (ReadGPSAccount.gpsEntry gps : entries) {
             ReadPassword.add(gps.Password);
         }
-        for (GPSAccountClass.gpsEntry gps : entries) {
+        for (ReadGPSAccount.gpsEntry gps : entries) {
             ReadLocation.add(gps.Location);
         }
-        for (GPSAccountClass.gpsEntry gps : entries) {
+        for (ReadGPSAccount.gpsEntry gps : entries) {
             ReadWifi.add(gps.Wifi);
         }
         return htmlString.toString();
@@ -631,7 +633,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         login=false;
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                new ReadGPSAccount().execute();
+                new LoginGPSAccount().execute();
 
 //                sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
 //                txtusername = String.valueOf(usernameText.getText());
