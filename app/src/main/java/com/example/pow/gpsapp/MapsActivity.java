@@ -112,7 +112,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public final static int NUMBER_OF_VALUES = 9999;
     SimpleAdapter ADAhere;
     List<Map<String, String>> data = null;
-    String ReadGPSAccountURL="http://readgps-ryanpow.rhcloud.com/testXML.jsp";
+    String ReadGPSAccountURL="http://gpsapp-ryanpow.rhcloud.com/phpXML.php";
 
 
 
@@ -205,10 +205,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
                 {
                     if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
+                        UserID=ReadUserID.get(x);
                         System.out.println(ReadUsername.get(x));
                         System.out.println(ReadPassword.get(x));
                         System.out.println("hi");
-                        UserID=ReadUserID.get(x);
                         generatemap();
                         break;
                     }
@@ -267,16 +267,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         conn.connect();
         return conn.getInputStream();
     }//XML DOWNLOAD\\
-    private class Update extends AsyncTask<Void, Void, Void> {
-        @Override
+    private class Registerxml extends AsyncTask<Void, Void, Void> {
+        ProgressDialog pDialog;
         protected void onPreExecute() {
-
+            super.onPreExecute();
+            // Showing progress dialog
+            pDialog = new ProgressDialog(MapsActivity.this);
+            pDialog.setMessage("Please wait...");
+            pDialog.setCancelable(false);
+            pDialog.show();
         }
         @Override
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/Register.php");//http://php-agkh1995.rhcloud.com/add.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
@@ -285,53 +290,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 nameValuePairs.add(new BasicNameValuePair("UserID", randomID));
-                nameValuePairs.add(new BasicNameValuePair("Username", String.valueOf(usernametxt)));
-                nameValuePairs.add(new BasicNameValuePair("Password", String.valueOf(passwordtxt)));
+                nameValuePairs.add(new BasicNameValuePair("Username", usernameregister));
+                nameValuePairs.add(new BasicNameValuePair("Password", passwordregister));
                 nameValuePairs.add(new BasicNameValuePair("Location", "null"));
                 nameValuePairs.add(new BasicNameValuePair("Wifi", "null"));
-                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-                HttpResponse response = httpclient.execute(httppost);
-                System.out.println("HTTP Response: "+response);
-            } catch (ClientProtocolException e) {
-                System.out.println("HTTP Response1 : "+e);
-            } catch (IOException e) {
-                System.out.println("HTTP Response2 : "+e);
-            }
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-        }
-
-    }
-    private class Registerxml extends AsyncTask<Void, Void, Void> {
-        ProgressDialog pDialog;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // Showing progress dialog
-            pDialog = new ProgressDialog(MapsActivity.this);
-            pDialog.setMessage("Please wait...");
-            pDialog.setCancelable(false);
-            pDialog.show();
-
-        }
-        @Override
-        protected Void doInBackground(Void... arg0) {
-
-            HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
-            // add start end and booking fac
-            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-            try {
-                // Add your data
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-                nameValuePairs.add(new BasicNameValuePair("UserID", "2132"));
-                nameValuePairs.add(new BasicNameValuePair("Location", txtLocation));
-                nameValuePairs.add(new BasicNameValuePair("Wifi", String.valueOf(sb)));
                 httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
                 HttpResponse response = httpclient.execute(httppost);
@@ -349,6 +311,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             // Dismiss the progress dialog
             if (pDialog.isShowing())
                 pDialog.dismiss();
+        }
+    }
+    private class Update extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+        }
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            // add start end and booking fac
+            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+                nameValuePairs.add(new BasicNameValuePair("UserID", UserID));
+                nameValuePairs.add(new BasicNameValuePair("Location", txtLocation));
+                nameValuePairs.add(new BasicNameValuePair("Wifi", String.valueOf(sb)));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = httpclient.execute(httppost);
+                System.out.println("HTTP Response: "+response);
+            } catch (ClientProtocolException e) {
+                System.out.println("HTTP Response1 : "+e);
+            } catch (IOException e) {
+                System.out.println("HTTP Response2 : "+e);
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+
         }
 
     }
@@ -396,11 +394,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                ReadWifi = new ArrayList<>();
+                usernameregister = String.valueOf(usernametxt.getText());
+                passwordregister = String.valueOf(passwordtxt.getText());
                 new Registerxml().execute();
 //                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
-//                usernameregister = String.valueOf(usernametxt.getText());
-//                passwordregister = String.valueOf(passwordtxt.getText());
 //                new CheckRegisterDatabase().execute();
             }
         });
