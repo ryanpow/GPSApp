@@ -107,12 +107,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<String> ReadPassword = new ArrayList<>();
     ArrayList<String> ReadLocation = new ArrayList<>();
     ArrayList<String> ReadWifi = new ArrayList<>();
+    ArrayList<String> ReadUserIDFriend = new ArrayList<>();
+    ArrayList<String> ReadFriendList = new ArrayList<>();
     private java.util.Random rndGenerator = new java.util.Random();
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
     SimpleAdapter ADAhere;
     List<Map<String, String>> data = null;
     String ReadGPSAccountURL="http://gpsapp-ryanpow.rhcloud.com/phpXML.php";
+    String ReadGPSFriendURL="http://gpsapp-ryanpow.rhcloud.com/FriendXML.php";
 
 
 
@@ -152,13 +155,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
-    private class CheckRegister extends AsyncTask<String, Void, String> {
 
+    private class CodeRegister extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             try {
+                testID = rndGenerator.nextInt(NUMBER_OF_VALUES);
+                randomID=String.format("%04d", testID);
                 return ReadGPSAccountXML(ReadGPSAccountURL);
+            } catch (IOException e) {
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUserID.get(x)).equals(randomID))
+                {
+                    codecheck=true;
+                    break;
+                }
+            }
+            if (codecheck==true)
+            {
+                new CodeRegister().execute();
+            }
+            else
+            {
+                new CheckRegister().execute();
+            }
+        }
+    }
+    /*
 
+     */
+    private class CheckRegister extends AsyncTask<String, Void, String> {//
+        @Override
+     /*
+       description :
+       input :
+       output :
+       return:
+      */
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSAccountXML(ReadGPSAccountURL);
             } catch (IOException e) {
 
                 return ("IO Error: " + e);
@@ -166,28 +209,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return ("XML Error: " + e);
             }
         }
-
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
-                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
+                if(String.valueOf(ReadUsername.get(x)).equals(usernameregister))
                 {
-                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
-                        UserID=ReadUserID.get(x);
-                        generatemap();
-                        break;
-                    }
+                    account=true;
+                    break;
                 }
-
             }
-
+            if (account==true)
+            {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("This username has been taken")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+            else
+            {
+                new Registerxml().execute();
+            }
         }
     }
+
     private class LoginGPSAccount extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... urls) {
             try {
-                System.out.println("fadadsa");
                 return ReadGPSAccountXML(ReadGPSAccountURL);
             } catch (IOException e) {
                 System.out.println("IO Error: " + e);
@@ -202,25 +256,57 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             System.out.println("test");
             System.out.println(ReadUserID.size());
             for(int x=0; x<ReadUserID.size(); x++){
-                if(String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())));
+                if((String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())))&&(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))))
                 {
-                    if(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))){
                         UserID=ReadUserID.get(x);
-                        System.out.println(ReadUsername.get(x));
-                        System.out.println(ReadPassword.get(x));
-                        System.out.println("hi");
-                        generatemap();
+                        login=true;
                         break;
-                    }
-                }
 
+                }
+            }
+            if (login==false)
+            {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("Incorrect Username or Password")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+            else
+            {
+                generatemap();
             }
 
         }
     }
+    private class CheckList extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSFriendXML(ReadGPSFriendURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadFriendList.get(x)).equals(usernameregister))
+                {
+                }
+            }
+        }
+    }
 
     private String ReadGPSAccountXML(String urlString) throws XmlPullParserException, IOException {
-        System.out.println("ReadAccountGPS");
         InputStream stream = null;
         // Instantiate the parser
         ReadGPSAccount stackOverflowXmlParser = new ReadGPSAccount();
@@ -254,6 +340,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return htmlString.toString();
     }
+    private String ReadGPSFriendXML(String urlString) throws XmlPullParserException, IOException {
+        InputStream stream = null;
+        // Instantiate the parser
+        ReadGPSFriend stackOverflowXmlParser = new ReadGPSFriend();
+        List<ReadGPSFriend.gpsEntry> entries = null;
+        StringBuilder htmlString = new StringBuilder();
+
+        try {
+            stream = downloadUrl(urlString);
+            entries = stackOverflowXmlParser.parse(stream);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+        // Store Objects
+        for (ReadGPSFriend.gpsEntry gps : entries) {
+            ReadUserIDFriend.add(gps.UserID);
+            System.out.println(gps.UserID);
+        }
+        for (ReadGPSFriend.gpsEntry gps : entries) {
+            ReadFriendList.add(gps.FriendList);
+        }
+        return htmlString.toString();
+    }
 
     //XML DOWNLOAD\\
     private InputStream downloadUrl(String urlString) throws IOException {
@@ -266,12 +377,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Starts the query
         conn.connect();
         return conn.getInputStream();
-    }//XML DOWNLOAD\\
+    }
     private class Registerxml extends AsyncTask<Void, Void, Void> {
         ProgressDialog pDialog;
         protected void onPreExecute() {
-            super.onPreExecute();
-            // Showing progress dialog
+            ProgressDialog pDialog;
             pDialog = new ProgressDialog(MapsActivity.this);
             pDialog.setMessage("Please wait...");
             pDialog.setCancelable(false);
@@ -390,13 +500,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         usernametxt = (TextView) findViewById(R.id.usernametxt);
         passwordtxt = (TextView) findViewById(R.id.passwordtxt);
         Button btnRegister = (Button) findViewById(R.id.btnsaveregister);
-        testID = rndGenerator.nextInt(NUMBER_OF_VALUES);
-        randomID=String.format("%04d", testID);
         btnRegister.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 usernameregister = String.valueOf(usernametxt.getText());
                 passwordregister = String.valueOf(passwordtxt.getText());
-                new Registerxml().execute();
+                account=false;
+                codecheck=false;
+                new CodeRegister().execute();
 //                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
 //                new CheckRegisterDatabase().execute();
             }
