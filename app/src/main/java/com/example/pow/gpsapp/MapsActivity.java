@@ -92,9 +92,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String print,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
-    boolean login=false,account=false,codecheck=false;
+    boolean login=false,account=false,codecheck=false,codereal=false,friendcheck=false;
     private GoogleApiClient client;
     Double latitude = IncomingSMSReceiver.latitude;
     Double longitude = IncomingSMSReceiver.longitude;
@@ -282,27 +282,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 generatemap();
             }
 
-        }
-    }
-    private class CheckList extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            try {
-                return ReadGPSFriendXML(ReadGPSFriendURL);
-            } catch (IOException e) {
-
-                return ("IO Error: " + e);
-            } catch (XmlPullParserException e) {
-                return ("XML Error: " + e);
-            }
-        }
-        @Override
-        protected void onPostExecute(String result) {
-            for(int x=0; x<ReadUserID.size(); x++){
-                if(String.valueOf(ReadFriendList.get(x)).equals(usernameregister))
-                {
-                }
-            }
         }
     }
 
@@ -727,12 +706,107 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         txtCode.setText(UserID);
         btnAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                new AddCode().execute();
-//                sqlStatement = "Select username from GPSAccount where UserID='"+txtAdd.getText()+"'";
-//                new ReadCodeDatabase().execute();
+                AddCode = String.valueOf(txtAdd.getText());
+                if (UserID==AddCode)
+                {
+                    new AlertDialog.Builder(MapsActivity.this)
+                            .setTitle("Error")
+                            .setMessage("Nice Try")
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                }
+                else
+                {
+                    new ConvertCode().execute();
+                }
             }
         });
     }
+    private class ConvertCode extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSFriendXML(ReadGPSFriendURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUserID.get(x)).equals(AddCode))
+                {
+                    CodeUsername=ReadUsername.get(x);
+                    codereal=true;
+                    new CheckList().execute();
+                    break;
+                }
+            }
+            if (codereal==false)
+            {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("This code is incorrect")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+        }
+    }
+
+    private class CheckList extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSFriendXML(ReadGPSFriendURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if((String.valueOf(ReadUserID.get(x)).equals(String.valueOf(UserID)))&&(String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
+                {
+                    friendcheck=true;
+                    break;
+                }
+            }
+            if (friendcheck==false)
+            {
+                new AddFriend().execute();
+            }
+            else
+            {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Error")
+                        .setMessage("This person is already in your friend list")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+        }
+    }
+
     public void login(){
         usernameText = (TextView) findViewById(R.id.usernameText);
         passwordText = (TextView) findViewById(R.id.passwordText);
@@ -1135,7 +1209,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-    private class AddCode extends AsyncTask<Void, Void, Void> {
+    private class AddFriend extends AsyncTask<Void, Void, Void> {
         @Override
         protected void onPreExecute() {
 
