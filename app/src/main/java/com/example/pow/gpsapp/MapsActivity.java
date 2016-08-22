@@ -35,6 +35,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -253,8 +254,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         @Override
         protected void onPostExecute(String result) {
-            System.out.println("test");
-            System.out.println(ReadUserID.size());
             for(int x=0; x<ReadUserID.size(); x++){
                 if((String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())))&&(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))))
                 {
@@ -358,19 +357,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return conn.getInputStream();
     }
     private class Registerxml extends AsyncTask<Void, Void, Void> {
-        ProgressDialog pDialog;
         protected void onPreExecute() {
-            ProgressDialog pDialog;
-            pDialog = new ProgressDialog(MapsActivity.this);
-            pDialog.setMessage("Please wait...");
-            pDialog.setCancelable(false);
-            pDialog.show();
         }
         @Override
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/Register.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/Register.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
@@ -397,9 +390,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-            // Dismiss the progress dialog
-            if (pDialog.isShowing())
-                pDialog.dismiss();
+            setContentView(R.layout.loginmenu);
         }
     }
     private class Update extends AsyncTask<Void, Void, Void> {
@@ -707,7 +698,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         btnAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 AddCode = String.valueOf(txtAdd.getText());
-                if (UserID==AddCode)
+                if (UserID.equals(AddCode))
                 {
                     new AlertDialog.Builder(MapsActivity.this)
                             .setTitle("Error")
@@ -731,7 +722,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected String doInBackground(String... urls) {
             try {
-                return ReadGPSFriendXML(ReadGPSFriendURL);
+                return ReadGPSAccountXML(ReadGPSAccountURL);
             } catch (IOException e) {
 
                 return ("IO Error: " + e);
@@ -780,8 +771,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         @Override
         protected void onPostExecute(String result) {
-            for(int x=0; x<ReadUserID.size(); x++){
-                if((String.valueOf(ReadUserID.get(x)).equals(String.valueOf(UserID)))&&(String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
+            for(int x=0; x<ReadUserIDFriend.size(); x++){
+                if((String.valueOf(ReadUserIDFriend.get(x)).equals(String.valueOf(UserID)))&&(String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
                 {
                     friendcheck=true;
                     break;
@@ -889,77 +880,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void friendlist(){
         setContentView(R.layout.friendlist);
         friendList = (ListView) findViewById(R.id.friendList);
-        sqlStatement = "select * from GPSFriend where UserID='"+UserID+"'";
-        data = new ArrayList<Map<String, String>>();
-        new ReadFriendDatabase().execute();
-        friendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                // TODO Auto-generated method stub
-                HashMap<String, Object> obj = (HashMap<String, Object>) ADAhere
-                        .getItem(position);
-                String VehicleId = (String) obj.get("A");
-                Toast.makeText(MapsActivity.this, VehicleId, Toast.LENGTH_LONG)
-                        .show();
+        new CreateList().execute();
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                this,
+                android.R.layout.simple_list_item_1,
+                ReadFriendList );
+
+        friendList.setAdapter(arrayAdapter);
+
+    }
+    private class CreateList extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSFriendXML(ReadGPSFriendURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
             }
-        });
-
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserIDFriend.size(); x++){
+                if(String.valueOf(ReadUserIDFriend.get(x)).equals(UserID))
+                {
+                    String[] FriendList={"Test"};
+                }
+            }
+        }
     }
-    private class ReadFriendDatabase extends AsyncTask<Void, Void, Void> {
-        ProgressDialog dialog;
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            dialog = ProgressDialog.show(MapsActivity.this, "Loading",
-                    "Please Wait", true);
-        }
-        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
 
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-                    try {
-                        // Establish the connection.
-                        Class.forName(driver);
-                        con = DriverManager.getConnection(url, userName, password);
-                        // Create and execute an SQL statement that returns some data.
-                        String SQL = sqlStatement;
-                        stmt = con.createStatement();
-                        rs = stmt.executeQuery(SQL);
-                        // Iterate through the data in the result set and display it.
-                        while (rs.next()) {
-                            Map<String, String> datanum = new HashMap<String, String>();
-                            datanum.put("A", rs.getString("Friendlist"));
-                            data.add(datanum);
-                        }
-                        Log.w("My Activity", "SQL No Error");
-                    } catch (Exception ex) {
-                        Log.w("My Activity", "SQL Error: " + ex.toString());
-                    }
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-            dialog.dismiss();
-            String[] fromwhere = {"A"};
-            int[] viewswhere = {R.id.lblname};
-            ADAhere = new SimpleAdapter(MapsActivity.this, data,
-                    R.layout.listadapter, fromwhere, viewswhere);
-            friendList.setAdapter(ADAhere);
-        }
-
-    }
     private class WriteDatabase extends AsyncTask<Void, Void, Void> {
             @Override
             protected void onPreExecute() {
@@ -1218,7 +1170,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/AddCode.php");//http://php-agkh1995.rhcloud.com/add.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
