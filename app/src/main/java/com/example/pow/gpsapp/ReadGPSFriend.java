@@ -66,7 +66,7 @@ public class ReadGPSFriend {
             String name = parser.getName();
             if (name.equals("UserID")) {
                 UserID2= readUserID(parser);
-            } else if (name.equals("Username")) {
+            } else if (name.equals("FriendList")) {
                 FriendList2= readFriendList(parser);
             }
             else {

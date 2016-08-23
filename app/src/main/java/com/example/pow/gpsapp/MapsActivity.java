@@ -339,7 +339,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             System.out.println(gps.UserID);
         }
         for (ReadGPSFriend.gpsEntry gps : entries) {
-            ReadFriendList.add(gps.FriendList);
+            if (gps.UserID.equals(UserID))
+            {
+                ReadFriendList.add(gps.FriendList);
+            }
+
         }
         return htmlString.toString();
     }
@@ -706,6 +710,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
+                                    dialog.dismiss();
                                 }
                             })
                             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -772,7 +777,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
-                if((String.valueOf(ReadUserIDFriend.get(x)).equals(String.valueOf(UserID)))&&(String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
+                if((String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
                 {
                     friendcheck=true;
                     break;
@@ -881,12 +886,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.friendlist);
         friendList = (ListView) findViewById(R.id.friendList);
         new CreateList().execute();
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                this,
-                android.R.layout.simple_list_item_1,
-                ReadFriendList );
 
-        friendList.setAdapter(arrayAdapter);
 
     }
     private class CreateList extends AsyncTask<String, Void, String> {
@@ -904,11 +904,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
-                if(String.valueOf(ReadUserIDFriend.get(x)).equals(UserID))
-                {
-                    String[] FriendList={"Test"};
-                }
             }
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                    MapsActivity.this,
+                    android.R.layout.simple_list_item_1,
+                    ReadFriendList );
+
+            friendList.setAdapter(arrayAdapter);
         }
     }
 
