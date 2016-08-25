@@ -88,12 +88,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static GoogleMap mMap;
     private static final int LOCATION_REQUEST_CODE = 101;
-    ListView friendList;
+    ListView friendList,deleteList;
     ContentResolver resolver;
     SearchView search;
     private Location mLastLocation;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String deletetxt,AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false,account=false,codecheck=false,codereal=false,friendcheck=false;
     private GoogleApiClient client;
@@ -689,12 +689,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              generatemap();
          }
          if (view.getId() == R.id.btnBack4) {
+             friendList.setAdapter(null);
              generatemap();
-
+         }
+         if (view.getId() == R.id.btnBack5) {
+             deleteList.setAdapter(null);
+             setContentView(R.layout.friendlist);
+             friendlist();
+         }
+         if (view.getId() == R.id.btnDelete) {
+             friendList.setAdapter(null);
+             setContentView(R.layout.deletelist);
+             deletelist();
          }
      }
     public void codemenu(){
         setContentView(R.layout.codemenu);
+        ReadUserIDFriend.clear();
+        ReadFriendList.clear();
         txtCode = (TextView) findViewById(R.id.txtCode);
         txtAdd = (TextView) findViewById(R.id.txtAdd);
         Button btnAdd = (Button) findViewById(R.id.btnAdd);
@@ -709,7 +721,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             .setMessage("Nice Try")
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
                                     dialog.dismiss();
                                 }
                             })
@@ -812,10 +823,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
                 new LoginGPSAccount().execute();
 
-//                sqlStatement = "select * from GPSAccount where Username='"+usernameText.getText()+"' AND Password='"+passwordText.getText()+"'";
-//                txtusername = String.valueOf(usernameText.getText());
-//                txtpassword = String.valueOf(passwordText.getText());
-//                new ReadAccountDatabase().execute();
             }
         });
 
@@ -885,9 +892,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void friendlist(){
         setContentView(R.layout.friendlist);
         friendList = (ListView) findViewById(R.id.friendList);
+        ReadUserIDFriend.clear();
+        ReadFriendList.clear();
         new CreateList().execute();
+        friendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> av, View view, int i, long l) {
+                String selectedFromList = ((String)av.getItemAtPosition(i));
+                Toast.makeText(getBaseContext(),selectedFromList,Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    public void deletelist(){
+        setContentView(R.layout.deletelist);
+        deleteList = (ListView) findViewById(R.id.deleteList);
+        ReadUserIDFriend.clear();
+        ReadFriendList.clear();
+        new CreateDeleteList().execute();
+        deleteList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> av, View view, int i, long l) {
+                String selectedFromList = ((String)av.getItemAtPosition(i));
+                Toast.makeText(getBaseContext(),selectedFromList,Toast.LENGTH_SHORT).show();
+                deletetxt = selectedFromList.toString();
+                new DeleteFriend().execute();
+            }
+        });
+    }
+    private class CreateDeleteList extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSFriendXML(ReadGPSFriendURL);
+            } catch (IOException e) {
 
-
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserIDFriend.size(); x++){
+            }
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MapsActivity.this,android.R.layout.simple_list_item_1,ReadFriendList );
+            deleteList.setAdapter(arrayAdapter);
+        }
     }
     private class CreateList extends AsyncTask<String, Void, String> {
         @Override
@@ -905,15 +953,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
             }
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                    MapsActivity.this,
-                    android.R.layout.simple_list_item_1,
-                    ReadFriendList );
-
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(MapsActivity.this,android.R.layout.simple_list_item_1,ReadFriendList );
             friendList.setAdapter(arrayAdapter);
         }
     }
+    private class DeleteFriend extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPreExecute() {
 
+        }
+        @Override
+        protected Void doInBackground(Void... arg0) {
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/DeleteList.php");//http://php-agkh1995.rhcloud.com/add.php");
+            // add start end and booking fac
+            httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+
+
+                nameValuePairs.add(new BasicNameValuePair("UserID", UserID));
+                nameValuePairs.add(new BasicNameValuePair("FriendList", deletetxt));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                HttpResponse response = httpclient.execute(httppost);
+                System.out.println("HTTP Response: "+response);
+            } catch (ClientProtocolException e) {
+                System.out.println("HTTP Response1 : "+e);
+            } catch (IOException e) {
+                System.out.println("HTTP Response2 : "+e);
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            deleteList.setAdapter(null);
+            friendList.setAdapter(null);
+            friendlist();
+        }
+
+    }
     private class WriteDatabase extends AsyncTask<Void, Void, Void> {
             @Override
             protected void onPreExecute() {
