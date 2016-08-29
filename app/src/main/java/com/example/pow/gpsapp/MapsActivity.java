@@ -53,6 +53,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.common.ConnectionResult;
 
@@ -92,13 +93,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ContentResolver resolver;
     SearchView search;
     private Location mLastLocation;
+    Marker marker;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String deletetxt,AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    static String SSID1,SSID2,SSID3,MAC1,MAC2,MAC3,level1,level2,level3,friendtxt,locationtxt,wifitxt,deletetxt,AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false,account=false,codecheck=false,codereal=false,friendcheck=false;
     private GoogleApiClient client;
-    Double latitude = IncomingSMSReceiver.latitude;
-    Double longitude = IncomingSMSReceiver.longitude;
+    Double latitude;
+    Double longitude;
     WifiManager mainWifi;
     WifiReceiver receiverWifi;
     List<ScanResult> wifiList;
@@ -598,15 +600,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          txtlevel1 = (TextView) findViewById(R.id.txtlevel1);
          txtlevel2 = (TextView) findViewById(R.id.txtlevel2);
          txtlevel3 = (TextView) findViewById(R.id.txtlevel3);
-         txtSSID1.setText(IncomingSMSReceiver.SSID1);
-         txtSSID2.setText(IncomingSMSReceiver.SSID2);
-         txtSSID3.setText(IncomingSMSReceiver.SSID3);
-         txtMAC1.setText(IncomingSMSReceiver.MAC1);
-         txtMAC2.setText(IncomingSMSReceiver.MAC2);
-         txtMAC3.setText(IncomingSMSReceiver.MAC3);
-         txtlevel1.setText(IncomingSMSReceiver.level1);
-         txtlevel2.setText(IncomingSMSReceiver.level2);
-         txtlevel3.setText(IncomingSMSReceiver.level3);
+         txtSSID1.setText(SSID1);
+         txtSSID2.setText(SSID2);
+         txtSSID3.setText(SSID3);
+         txtMAC1.setText(MAC1);
+         txtMAC2.setText(MAC2);
+         txtMAC3.setText(MAC3);
+         txtlevel1.setText(level1);
+         txtlevel2.setText(level2);
+         txtlevel3.setText(level3);
          if (txtSSID1.getText().equals("")){
              txtSSID1.setText("(No SSID)");
          }
@@ -898,9 +900,100 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         friendList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> av, View view, int i, long l) {
                 String selectedFromList = ((String)av.getItemAtPosition(i));
+                friendtxt=selectedFromList;
+                new FindFriend().execute();
                 Toast.makeText(getBaseContext(),selectedFromList,Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    private class FindFriend extends AsyncTask<String, Void, String> {//
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSAccountXML(ReadGPSAccountURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUsername.get(x)).equals(friendtxt))
+                {
+                    locationtxt = ReadLocation.get(x);
+                    wifitxt = ReadWifi.get(x);
+                    String[] latlong = locationtxt.split(",");
+                    latitude = Double.parseDouble(latlong[0]);
+                    longitude = Double.parseDouble(latlong[1]);
+                    String[] wifiinfo = wifitxt.split("!");
+                    String wifi1 = wifiinfo[0];
+                    String wifi2 = wifiinfo[1];
+                    String wifi3 = wifiinfo[2];
+                    String[] wifiinfo1 = wifi1.split(",");
+                    SSID1 = wifiinfo1[0];
+                    MAC1 = wifiinfo1[1];
+                    level1 = wifiinfo1[2];
+                    String[] wifiinfo2 = wifi2.split(",");
+                    SSID2 = wifiinfo2[0];
+                    MAC2 = wifiinfo2[1];
+                    level2 = wifiinfo2[2];
+                    String[] wifiinfo3 = wifi3.split(",");
+                    SSID3 = wifiinfo3[0];
+                    MAC3 = wifiinfo3[1];
+                    level3 = wifiinfo3[2];
+                }
+            }
+            generatemap();
+            new UpdateInfo().execute();
+        }
+    }
+    private class UpdateInfo extends AsyncTask<String, Void, String> {//
+        @Override
+        protected String doInBackground(String... urls) {
+            try {
+                return ReadGPSAccountXML(ReadGPSAccountURL);
+            } catch (IOException e) {
+
+                return ("IO Error: " + e);
+            } catch (XmlPullParserException e) {
+                return ("XML Error: " + e);
+            }
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            for(int x=0; x<ReadUserID.size(); x++){
+                {
+                    locationtxt = ReadLocation.get(x);
+                    wifitxt = ReadWifi.get(x);
+                    String[] latlong = locationtxt.split(",");
+                    latitude = Double.parseDouble(latlong[0]);
+                    longitude = Double.parseDouble(latlong[1]);
+                    LatLng latLng = new LatLng(latitude,longitude);
+                    marker.remove();
+                    marker=MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+                    String[] wifiinfo = wifitxt.split("!");
+                    String wifi1 = wifiinfo[0];
+                    String wifi2 = wifiinfo[1];
+                    String wifi3 = wifiinfo[2];
+                    String[] wifiinfo1 = wifi1.split(",");
+                    SSID1 = wifiinfo1[0];
+                    MAC1 = wifiinfo1[1];
+                    level1 = wifiinfo1[2];
+                    String[] wifiinfo2 = wifi2.split(",");
+                    SSID2 = wifiinfo2[0];
+                    MAC2 = wifiinfo2[1];
+                    level2 = wifiinfo2[2];
+                    String[] wifiinfo3 = wifi3.split(",");
+                    SSID3 = wifiinfo3[0];
+                    MAC3 = wifiinfo3[1];
+                    level3 = wifiinfo3[2];
+                }
+            }
+            new UpdateInfo().execute();
+        }
     }
     public void deletelist(){
         setContentView(R.layout.deletelist);
@@ -1064,7 +1157,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Establish the connection.
                 Class.forName(driver);
                 con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
+                // Create aned execute an SQL statement that returns some data.
                 String SQL = sqlStatement;
                 stmt = con.createStatement();
                 rs = stmt.executeQuery(SQL);
@@ -1291,15 +1384,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              return;
          }
          mMap.setMyLocationEnabled(true);
-        if((IncomingSMSReceiver.latitude==null)&&(IncomingSMSReceiver.longitude==null)) {
+        if((latitude==null)&&(longitude==null)) {
             LatLng coordinate = new LatLng(1.3468, 103.9326);
             CameraUpdate location = CameraUpdateFactory.newLatLngZoom(coordinate, 15);
             mMap.animateCamera(location);
         }
          else
         {
-            LatLng latLng = new LatLng(IncomingSMSReceiver.latitude,IncomingSMSReceiver.longitude);
-            MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
+            LatLng latLng = new LatLng(latitude,longitude);
+            marker=MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
             MapsActivity.mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
         }
      }
