@@ -72,16 +72,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
@@ -91,7 +84,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int LOCATION_REQUEST_CODE = 101;
     ListView friendList,deleteList;
     ContentResolver resolver;
-    SearchView search;
     private Location mLastLocation;
     Marker marker;
     public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
@@ -115,7 +107,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private java.util.Random rndGenerator = new java.util.Random();
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
-    SimpleAdapter ADAhere;
     List<Map<String, String>> data = null;
     String ReadGPSAccountURL="http://gpsapp-ryanpow.rhcloud.com/phpXML.php";
     String ReadGPSFriendURL="http://gpsapp-ryanpow.rhcloud.com/FriendXML.php";
@@ -337,8 +328,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         // Store Objects
         for (ReadGPSFriend.gpsEntry gps : entries) {
-            ReadUserIDFriend.add(gps.UserID);
-            System.out.println(gps.UserID);
+            if (gps.UserID.equals(UserID))
+            {
+                ReadUserIDFriend.add(gps.UserID);
+            };
         }
         for (ReadGPSFriend.gpsEntry gps : entries) {
             if (gps.UserID.equals(UserID))
@@ -350,15 +343,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return htmlString.toString();
     }
 
-    //XML DOWNLOAD\\
+    //Downloads the XML\\
     private InputStream downloadUrl(String urlString) throws IOException {
         java.net.URL url = new URL(urlString);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000 /* milliseconds */);
-        conn.setConnectTimeout(15000 /* milliseconds */);
+        conn.setReadTimeout(10000);
+        conn.setConnectTimeout(15000);
         conn.setRequestMethod("GET");
         conn.setDoInput(true);
-        // Starts the query
         conn.connect();
         return conn.getInputStream();
     }
@@ -397,6 +389,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             setContentView(R.layout.loginmenu);
+            login();
         }
     }
     private class Update extends AsyncTask<Void, Void, Void> {
@@ -468,8 +461,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                      count++;
              }
              new Update().execute();
-//             sqlStatement = "UPDATE GPSAccount set Wifi='"+sb+"' where UserID='"+UserID+"'";
-//             new WriteDatabase().execute();
          }
      }
     public void Register(){
@@ -483,83 +474,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 account=false;
                 codecheck=false;
                 new CodeRegister().execute();
-//                sqlStatement="select * from GPSAccount where Username='"+usernametxt.getText()+"'";
-//                new CheckRegisterDatabase().execute();
             }
         });
-    }
-    private class CheckRegisterDatabase extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(SQL);
-                /* Iterate through the data in the result set and display it. */
-                while (rs.next()) {
-                    getSQLUsername= rs.getString("username") ;
-                    getSQLPassword=rs.getString("password");
-                    UserID=rs.getString("userid");
-                    if(getSQLUsername.equals(usernameregister)){
-                        account=true;
-                    }
-                }
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
-            try {
-                rs.close();
-                con.close();
-            }
-            catch (Exception e){
-            }
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-            if (account==true) {
-                new AlertDialog.Builder(MapsActivity.this)
-                        .setTitle("Error")
-                        .setMessage("Username has been taken")
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-            else{
-                sqlStatement = "insert into GPSAccount values('" + randomID + "','" + usernametxt.getText() + "','" + passwordtxt.getText() + "','null','null')";
-                new WriteDatabase().execute();
-                setContentView(R.layout.loginmenu);
-                login();
-            }
-        }
     }
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
@@ -569,8 +485,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              mLastLocation = location;
              txtLocation = (String.valueOf(location.getLatitude()) + "," + String.valueOf(location.getLongitude()));
              new Update().execute();
-//             sqlStatement = "UPDATE GPSAccount set Location='"+txtLocation+"' where UserID='"+UserID+"'";
-//             new WriteDatabase().execute();
          }
 
          @Override
@@ -619,46 +533,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              txtSSID3.setText("(No SSID)");
          }
      }
-     @Override
-     public void onStart() {
-         super.onStart();
-
-         // ATTENTION: This was auto-generated to implement the App Indexing API.
-         // See https://g.co/AppIndexing/AndroidStudio for more information.
-         client.connect();
-         Action viewAction = Action.newAction(
-                 Action.TYPE_VIEW, // TODO: choose an action type.
-                 "Maps Page", // TODO: Define a title for the content shown.
-                 // TODO: If you have web page content that matches this app activity's content,
-                 // make sure this auto-generated web page URL is correct.
-                 // Otherwise, set the URL to null.
-                 Uri.parse("http://host/path"),
-                 // TODO: Make sure this auto-generated app URL is correct.
-                 Uri.parse("android-app://com.example.pow.gpsapp/http/host/path")
-         );
-         AppIndex.AppIndexApi.start(client, viewAction);
-     }
-
-     @Override
-     public void onStop() {
-         super.onStop();
-
-         // ATTENTION: This was auto-generated to implement the App Indexing API.
-         // See https://g.co/AppIndexing/AndroidStudio for more information.
-         Action viewAction = Action.newAction(
-                 Action.TYPE_VIEW, // TODO: choose an action type.
-                 "Maps Page", // TODO: Define a title for the content shown.
-                 // TODO: If you have web page content that matches this app activity's content,
-                 // make sure this auto-generated web page URL is correct.
-                 // Otherwise, set the URL to null.
-                 Uri.parse("http://host/path"),
-                 // TODO: Make sure this auto-generated app URL is correct.
-                 Uri.parse("android-app://com.example.pow.gpsapp/http/host/path")
-         );
-         AppIndex.AppIndexApi.end(client, viewAction);
-         client.disconnect();
-     }
-
 
      public void onSwitch(View view) {
          if (view.getId() == R.id.btnBack2) {
@@ -790,7 +664,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
-                if((String.valueOf(ReadFriendList.get(x)).equals(String.valueOf(CodeUsername))))
+                if((String.valueOf(ReadUserIDFriend.get(x)).equals(UserID))&&(String.valueOf(ReadFriendList.get(x)).equals(CodeUsername)))
                 {
                     friendcheck=true;
                     break;
@@ -925,26 +799,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 {
                     locationtxt = ReadLocation.get(x);
                     wifitxt = ReadWifi.get(x);
-                    String[] latlong = locationtxt.split(",");
-                    latitude = Double.parseDouble(latlong[0]);
-                    longitude = Double.parseDouble(latlong[1]);
-                    String[] wifiinfo = wifitxt.split("!");
-                    String wifi1 = wifiinfo[0];
-                    String wifi2 = wifiinfo[1];
-                    String wifi3 = wifiinfo[2];
-                    String[] wifiinfo1 = wifi1.split(",");
-                    SSID1 = wifiinfo1[0];
-                    MAC1 = wifiinfo1[1];
-                    level1 = wifiinfo1[2];
-                    String[] wifiinfo2 = wifi2.split(",");
-                    SSID2 = wifiinfo2[0];
-                    MAC2 = wifiinfo2[1];
-                    level2 = wifiinfo2[2];
-                    String[] wifiinfo3 = wifi3.split(",");
-                    SSID3 = wifiinfo3[0];
-                    MAC3 = wifiinfo3[1];
-                    level3 = wifiinfo3[2];
                 }
+            }
+            if (locationtxt.equals("null"))
+            {
+                Toast.makeText(getBaseContext(),"Location Unavaliable",Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                String[] latlong = locationtxt.split(",");
+                latitude = Double.parseDouble(latlong[0]);
+                longitude = Double.parseDouble(latlong[1]);
+            }
+            if (wifitxt.equals("null"))
+            {
+                Toast.makeText(getBaseContext(),"Wifi Unavaliable",Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                String[] wifiinfo = wifitxt.split("!");
+                String wifi1 = wifiinfo[0];
+                String wifi2 = wifiinfo[1];
+                String wifi3 = wifiinfo[2];
+                String[] wifiinfo1 = wifi1.split(",");
+                SSID1 = wifiinfo1[0];
+                MAC1 = wifiinfo1[1];
+                level1 = wifiinfo1[2];
+                String[] wifiinfo2 = wifi2.split(",");
+                SSID2 = wifiinfo2[0];
+                MAC2 = wifiinfo2[1];
+                level2 = wifiinfo2[2];
+                String[] wifiinfo3 = wifi3.split(",");
+                SSID3 = wifiinfo3[0];
+                MAC3 = wifiinfo3[1];
+                level3 = wifiinfo3[2];
             }
             generatemap();
             new UpdateInfo().execute();
@@ -965,32 +853,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
+                if(String.valueOf(ReadUsername.get(x)).equals(friendtxt))
                 {
                     locationtxt = ReadLocation.get(x);
                     wifitxt = ReadWifi.get(x);
-                    String[] latlong = locationtxt.split(",");
-                    latitude = Double.parseDouble(latlong[0]);
-                    longitude = Double.parseDouble(latlong[1]);
-                    LatLng latLng = new LatLng(latitude,longitude);
-                    marker.remove();
-                    marker=MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
-                    String[] wifiinfo = wifitxt.split("!");
-                    String wifi1 = wifiinfo[0];
-                    String wifi2 = wifiinfo[1];
-                    String wifi3 = wifiinfo[2];
-                    String[] wifiinfo1 = wifi1.split(",");
-                    SSID1 = wifiinfo1[0];
-                    MAC1 = wifiinfo1[1];
-                    level1 = wifiinfo1[2];
-                    String[] wifiinfo2 = wifi2.split(",");
-                    SSID2 = wifiinfo2[0];
-                    MAC2 = wifiinfo2[1];
-                    level2 = wifiinfo2[2];
-                    String[] wifiinfo3 = wifi3.split(",");
-                    SSID3 = wifiinfo3[0];
-                    MAC3 = wifiinfo3[1];
-                    level3 = wifiinfo3[2];
                 }
+            }
+            if (locationtxt.equals("null"))
+            {
+            }
+            else
+            {
+                String[] latlong = locationtxt.split(",");
+                latitude = Double.parseDouble(latlong[0]);
+                longitude = Double.parseDouble(latlong[1]);
+            }
+            if (wifitxt.equals("null"))
+            {
+            }
+            else
+            {
+                String[] wifiinfo = wifitxt.split("!");
+                String wifi1 = wifiinfo[0];
+                String wifi2 = wifiinfo[1];
+                String wifi3 = wifiinfo[2];
+                String[] wifiinfo1 = wifi1.split(",");
+                SSID1 = wifiinfo1[0];
+                MAC1 = wifiinfo1[1];
+                level1 = wifiinfo1[2];
+                String[] wifiinfo2 = wifi2.split(",");
+                SSID2 = wifiinfo2[0];
+                MAC2 = wifiinfo2[1];
+                level2 = wifiinfo2[2];
+                String[] wifiinfo3 = wifi3.split(",");
+                SSID3 = wifiinfo3[0];
+                MAC3 = wifiinfo3[1];
+                level3 = wifiinfo3[2];
             }
             new UpdateInfo().execute();
         }
@@ -1059,7 +957,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/DeleteList.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/DeleteList.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
@@ -1088,255 +986,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             friendlist();
         }
 
-    }
-    private class WriteDatabase extends AsyncTask<Void, Void, Void> {
-            @Override
-            protected void onPreExecute() {
-                super.onPreExecute();
-            }
-            @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-            @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                stmt.executeUpdate(SQL);
-
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-        }
-
-    }
-    private class ReadAccountDatabase extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create aned execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(SQL);
-
-                /* Iterate through the data in the result set and display it. */
-                while (rs.next()) {
-                    getSQLUsername= rs.getString("username") ;
-                    getSQLPassword=rs.getString("password");
-                    UserID=rs.getString("userid");
-                    if(getSQLUsername.equals(txtusername)&& getSQLPassword.equals(txtpassword)){
-                        login=true;
-                    }
-                }
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
-            try {
-                rs.close();
-                con.close();
-            }
-            catch (Exception e){
-
-            }
-
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-            if (login==true){
-                generatemap();
-            }
-            else{
-                new AlertDialog.Builder(MapsActivity.this)
-                        .setTitle("Error")
-                        .setMessage("Incorrect Username or Password")
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-        }
-
-    }
-    private class ReadCodeDatabase extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(SQL);
-
-                /* Iterate through the data in the result set and display it. */
-                while (rs.next()) {
-                    CodeUsername= rs.getString("username") ;
-                }
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
-            try {
-                rs.close();
-                con.close();
-            }
-            catch (Exception e){
-
-            }
-
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-                sqlStatement = "Select * from GPSFriend where Friendlist='"+CodeUsername+"'";
-                new CheckCodeDatabase().execute();
-            }
-        }
-    private class CheckCodeDatabase extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-        @TargetApi(Build.VERSION_CODES.GINGERBREAD)
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
-                    .permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-
-            String url = "jdbc:jtds:sqlserver://182.50.133.109:1433;DatabaseName=tps";
-            String driver = "net.sourceforge.jtds.jdbc.Driver";
-            String userName = "RyanPow";
-            String password = "password123";
-            // Declare the JDBC objects.
-            Connection con = null;
-            Statement stmt = null;
-            ResultSet rs = null;
-            try
-            {
-                // Establish the connection.
-                Class.forName(driver);
-                con = DriverManager.getConnection(url, userName, password);
-                // Create and execute an SQL statement that returns some data.
-                String SQL = sqlStatement;
-                stmt = con.createStatement();
-                rs = stmt.executeQuery(SQL);
-
-                /* Iterate through the data in the result set and display it. */
-                while (rs.next()) {
-                    CheckUsername= rs.getString("friendlist") ;
-                    if(CheckUsername.equals(CodeUsername)){
-                        codecheck=true;
-                    }
-                }
-                Log.w("My Activity", "SQL No Error");
-            }
-            catch(Exception ex)
-            {
-                Log.w("My Activity", "SQL Error: "+ ex.toString());
-            }
-            try {
-                rs.close();
-                con.close();
-            }
-            catch (Exception e){
-
-            }
-
-            return null;
-        }
-        @Override
-        protected void onPostExecute(Void result) {
-            if (codecheck==true){
-                new AlertDialog.Builder(MapsActivity.this)
-                        .setTitle("Error")
-                        .setMessage("This account is already in your friend list")
-                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-
-            }
-            else{
-                sqlStatement = "insert into GPSFriend values('"+UserID+"','"+CodeUsername+"')";
-                new WriteDatabase().execute();
-                generatemap();
-            }
-        }
     }
     private class AddFriend extends AsyncTask<Void, Void, Void> {
         @Override
@@ -1371,7 +1020,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
-
+            generatemap();
         }
 
     }
