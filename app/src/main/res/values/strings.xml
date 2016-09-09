@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">GPS App</string>
+    <string name="app_name">Server Map</string>
     <string name="title_activity_maps">Map</string>
 </resources>

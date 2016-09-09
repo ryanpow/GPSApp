@@ -121,15 +121,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                     LOCATION_REQUEST_CODE);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS}, 123);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.SEND_SMS}, 123);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, 123);
-        }
         setContentView(R.layout.loginmenu);
         login=false;
         login();
