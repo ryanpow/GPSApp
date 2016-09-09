@@ -86,8 +86,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ContentResolver resolver;
     private Location mLastLocation;
     Marker marker;
-    public static TextView txtCode,mainLabel,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
-    static String SSID1,SSID2,SSID3,MAC1,MAC2,MAC3,level1,level2,level3,friendtxt,locationtxt,wifitxt,deletetxt,AddCode,CheckUsername,txtWifi,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
+    public static TextView txtCode,txtAdd,txtSSID1, txtSSID2, txtSSID3, txtMAC1, txtMAC2, txtMAC3, txtlevel1, txtlevel2, txtlevel3,usernameText,passwordText,usernametxt,passwordtxt;
+    static String SSID1,SSID2,SSID3,MAC1,MAC2,MAC3,level1,level2,level3,friendtxt,locationtxt,wifitxt,deletetxt,AddCode,passwordregister,usernameregister,CodeUsername,txtLocation, txtusername, txtpassword, sqlStatement, getSQLUsername, getSQLPassword,randomID,UserID,usernametxt2,passwordtxt2;
     public LocationManager mLocationManager;
     boolean login=false,account=false,codecheck=false,codereal=false,friendcheck=false;
     private GoogleApiClient client;
@@ -858,6 +858,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String[] latlong = locationtxt.split(",");
                 latitude = Double.parseDouble(latlong[0]);
                 longitude = Double.parseDouble(latlong[1]);
+                LatLng latLng = new LatLng(latitude,longitude);
+                marker.remove();
+                marker=MapsActivity.mMap.addMarker(new MarkerOptions().position(latLng).title("Marker"));
             }
             if (wifitxt.equals("null"))
             {
