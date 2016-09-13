@@ -688,6 +688,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         login=false;
         btnLogin.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                Toast.makeText(getBaseContext(),"Logging In",Toast.LENGTH_SHORT).show();
                 new LoginGPSAccount().execute();
 
             }
