@@ -108,15 +108,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int testID;
     public final static int NUMBER_OF_VALUES = 9999;
     List<Map<String, String>> data = null;
+//    These 2 URLs are needed to tell the code which PHP files to connect
     String ReadGPSAccountURL="http://gpsapp-ryanpow.rhcloud.com/phpXML.php";
     String ReadGPSFriendURL="http://gpsapp-ryanpow.rhcloud.com/FriendXML.php";
 
 
 
-
+//    This method is used the moment the application starts.
+//    It will call the login() method to generate the login page.
+//    Request permission if needed.
+//    It will also start scanning for information.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        requesting GPS permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission(Manifest.permission.ACCESS_FINE_LOCATION,
                     LOCATION_REQUEST_CODE);
@@ -129,20 +134,58 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         int LOCATION_REFRESH_TIME = 0;
         int LOCATION_REFRESH_DISTANCE = 0;
-
+//      Starts scanning for GPS Info
         mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_REFRESH_TIME,
                 LOCATION_REFRESH_DISTANCE, mLocationListener);
+//       Starts scanning for WiFi info
          mainWifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
          receiverWifi = new WifiReceiver();
          registerReceiver(receiverWifi, new IntentFilter(
                  WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
          mainWifi.startScan();
      }
+//    This method is called to generate the login page at the start of the application
+//    It also calls the LoginGPSAccount() method to execute the login command
+    public void login(){
+        usernameText = (TextView) findViewById(R.id.usernameText);
+        passwordText = (TextView) findViewById(R.id.passwordText);
+        Button btnLogin = (Button) findViewById(R.id.btnlogin);
+        login=false;
+        btnLogin.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Toast.makeText(getBaseContext(),"Logging In",Toast.LENGTH_SHORT).show();
+                new LoginGPSAccount().execute();
 
+            }
+        });
+    }
+//    This method is for the Register page
+//    It will save the username and password into variables
+//    It will also run CodeRegister() to execute the registering sequence
+    public void Register(){
+        usernametxt = (TextView) findViewById(R.id.usernametxt);
+        passwordtxt = (TextView) findViewById(R.id.passwordtxt);
+        Button btnRegister = (Button) findViewById(R.id.btnsaveregister);
+        btnRegister.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                usernameregister = String.valueOf(usernametxt.getText());
+                passwordregister = String.valueOf(passwordtxt.getText());
+                account=false;
+                codecheck=false;
+                new CodeRegister().execute();
+            }
+        });
+    }
+//    This class is used when the user registers
+//    This is for assigning a unique code to the account
+//    If the same code has been assigned, it will run the class again to generate a new code
     private class CodeRegister extends AsyncTask<String, Void, String> {
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSAccountXML method for connection
+//      It will also generate a 4-digit code to put into the variable 'randomID'
         protected String doInBackground(String... urls) {
             try {
                 testID = rndGenerator.nextInt(NUMBER_OF_VALUES);
@@ -154,6 +197,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return ("XML Error: " + e);
             }
         }
+//    This method runs once connection with the XML file is complete
+//    It will also check if the code is unique,if not, it will loop the class until it is unique
+//    If it is unique, it runs the CheckRegister() class
         @Override
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
@@ -173,17 +219,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-    /*
-
-     */
+//    This class is used to check if the username has been taken
     private class CheckRegister extends AsyncTask<String, Void, String> {//
         @Override
-     /*
-       description :
-       input :
-       output :
-       return:
-      */
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSAccountXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSAccountXML(ReadGPSAccountURL);
@@ -195,6 +235,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         @Override
+//        This method runs once connection with the XML file is complete
+//        It checks if the username that has been entered is a duplicate
+//        If it is a duplicate, it generates an error message showing that the username has been taken
+//        If it is not, it runs the Registerxml() class
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
                 if(String.valueOf(ReadUsername.get(x)).equals(usernameregister))
@@ -222,9 +266,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-
+//    This class is used when the user logins
     private class LoginGPSAccount extends AsyncTask<String, Void, String> {
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSAccountXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSAccountXML(ReadGPSAccountURL);
@@ -235,8 +281,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return ("XML Error: " + e);
             }
         }
-
         @Override
+//        This method runs once connection with the XML file is complete
+//        It checks to see if the input info matched with any of the info in the database
+//        If it matches, the main page will be generated
+//        If it does not, it will show an error message showing that the info is wrong
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
                 if((String.valueOf(ReadUsername.get(x)).equals(String.valueOf(usernameText.getText())))&&(String.valueOf(ReadPassword.get(x)).equals(String.valueOf(passwordText.getText()))))
@@ -267,7 +316,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
-
+//    This method is called whenever a connection with the GPSAccount database is needed
+//    It stores the ReadGPSAccount class variables that was received from the server
     private String ReadGPSAccountXML(String urlString) throws XmlPullParserException, IOException {
         InputStream stream = null;
         // Instantiate the parser
@@ -302,6 +352,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         return htmlString.toString();
     }
+//    This method is called whenever a connection with the GPSFriend database is needed
+//    It stores the ReadGPSFriend class variables that was received from the server
     private String ReadGPSFriendXML(String urlString) throws XmlPullParserException, IOException {
         InputStream stream = null;
         // Instantiate the parser
@@ -345,10 +397,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         conn.connect();
         return conn.getInputStream();
     }
+//    This class is called once all the register checking has been completed
+//    It connects with the PHP file and saves the input data into the GPSAccount database
     private class Registerxml extends AsyncTask<Void, Void, Void> {
-        protected void onPreExecute() {
-        }
         @Override
+//        This method takes the stored objects and name them different variables for the PHP file to understand
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
@@ -377,23 +430,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return null;
         }
         @Override
+//        This method runs once the storing of data has been completed
+//        It will generate the login page again after registering
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
             setContentView(R.layout.loginmenu);
             login();
         }
     }
+//    This class is called whenever GPS or Wi-Fi information has been changed in the phone
+//    It connects with the PHP file and saves the input data into the GPSAccount database
+//    It will update the past info with the latest info into the database
     private class Update extends AsyncTask<Void, Void, Void> {
         @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-
-        }
-        @Override
+//        This method takes the stored objects and name them different variables for the PHP file to understand
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/add.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
@@ -413,13 +467,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             return null;
         }
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-        }
-
     }
+//    This method is called to destroy the map fragment, preventing overload of fragments
      public void onDestroyView() {
          FragmentManager fm = getSupportFragmentManager();
          Fragment fragment = (fm.findFragmentById(R.id.map));
@@ -427,13 +476,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          ft.remove(fragment);
          ft.commit();
      }
-     public boolean onCreateOptionsMenu(Menu menu) {
-         menu.add(0, 0, 0, "Refresh");
-         return super.onCreateOptionsMenu(menu);}
-     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-         mainWifi.startScan();
-         return super.onMenuItemSelected(featureId, item);}
+//    This method is called whenever the layout changes to the main page
+//    It generates the map and the main page
+    public void generatemap(){
+        setContentView(R.layout.activity_maps);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+//    This class is used when the application starts
+//    It is for detecting WiFi information
      class WifiReceiver extends BroadcastReceiver {
+//    This method runs when WiFi information gets updated
+//    It will convert the WiFi info to string for storing of info
+//    Then it will run Update() to update the info to the database
          public void onReceive(Context c, Intent intent) {
              sb = new StringBuilder();
              wifiList = mainWifi.getScanResults();
@@ -454,22 +510,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              new Update().execute();
          }
      }
-    public void Register(){
-        usernametxt = (TextView) findViewById(R.id.usernametxt);
-        passwordtxt = (TextView) findViewById(R.id.passwordtxt);
-        Button btnRegister = (Button) findViewById(R.id.btnsaveregister);
-        btnRegister.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                usernameregister = String.valueOf(usernametxt.getText());
-                passwordregister = String.valueOf(passwordtxt.getText());
-                account=false;
-                codecheck=false;
-                new CodeRegister().execute();
-            }
-        });
-    }
+//         This allows the GPS info to be received
      private final android.location.LocationListener mLocationListener = new android.location.LocationListener() {
          @Override
+//         This method gets called when the GPS info changes
+//         It converts the info into string coordinates for storing
+//         Then it will run Update() to update the info to the database
          public void onLocationChanged(Location location) {
              //code
              System.out.println("onLocationChanged");
@@ -494,6 +540,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              //turns off gps services
          }
      };
+//    This method runs when the user wants to view the WiFi page
+//    It will generate the WiFi page and assign the stored external WiFi info to the text fields
+//    If there is no SSID from the stored WiFi external info, "No SSID" will be displayed
      public void wifi_list(){
          setContentView(R.layout.wifi_list);
          txtSSID1 = (TextView) findViewById(R.id.txtSSID1);
@@ -524,7 +573,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              txtSSID3.setText("(No SSID)");
          }
      }
-
+//    This method is called whenever a button is pressed that does not involve database connections
+//    It will generate the map and destroy it if needed
+//    It also empties list to prevent duplicated generating information
+//    It assigns the buttons to their appropriate methods
      public void onSwitch(View view) {
          if (view.getId() == R.id.btnBack2) {
              generatemap();
@@ -570,6 +622,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              deletelist();
          }
      }
+//    This method is called when the user wants to add a friend into their friend list
+//    It generates the codemenu layout and it displays the users code for adding
+//    It checks if the code that is added is the user's own code
+//    If it is, an error message is displayed
+//    If it is not, ConvertCode() runs for checking and adding a friend
     public void codemenu(){
         setContentView(R.layout.codemenu);
         ReadUserIDFriend.clear();
@@ -585,7 +642,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 {
                     new AlertDialog.Builder(MapsActivity.this)
                             .setTitle("Error")
-                            .setMessage("Nice Try")
+                            .setMessage("You cannot add yourself")
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
@@ -601,19 +658,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+//    This class is called after the user tries to add a friend
+//    This class is for checking if the code exists and for converting the code into a username
     private class ConvertCode extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            try {
-                return ReadGPSAccountXML(ReadGPSAccountURL);
-            } catch (IOException e) {
-
-                return ("IO Error: " + e);
-            } catch (XmlPullParserException e) {
-                return ("XML Error: " + e);
-            }
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSAccountXML method for connection
+    protected String doInBackground(String... urls) {
+        try {
+            return ReadGPSAccountXML(ReadGPSAccountURL);
+        } catch (IOException e) {
+            System.out.println("IO Error: " + e);
+            return ("IO Error: " + e);
+        } catch (XmlPullParserException e) {
+            return ("XML Error: " + e);
         }
-        @Override
+    }
+    @Override
+//     This method runs once connection with the XML file is complete
+//     It checks if the code exists
+//     If it does, it will store the username that belongs to the code into a variable called 'CodeUsername' and run CheckList()
+//     If it does not, It will run an error message telling the user that the code is incorrect
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
                 if(String.valueOf(ReadUserID.get(x)).equals(AddCode))
@@ -639,9 +703,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-
+//  This class is to check if the friend has not already been added in the friend list
     private class CheckList extends AsyncTask<String, Void, String> {
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSFriendXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSFriendXML(ReadGPSFriendURL);
@@ -653,6 +719,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         @Override
+//     This method runs once connection with the XML file is complete
+//     It compares the user's friend list with the 'CodeUsername', checking if the variable already exists in the friend list
+//     If it exists, display an error message telling the user that the person is already in the friend list
+//     If it does not, it will execute AddFriend()
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
                 if((String.valueOf(ReadUserIDFriend.get(x)).equals(UserID))&&(String.valueOf(ReadFriendList.get(x)).equals(CodeUsername)))
@@ -680,29 +750,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-
-    public void login(){
-        usernameText = (TextView) findViewById(R.id.usernameText);
-        passwordText = (TextView) findViewById(R.id.passwordText);
-        Button btnLogin = (Button) findViewById(R.id.btnlogin);
-        login=false;
-        btnLogin.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Toast.makeText(getBaseContext(),"Logging In",Toast.LENGTH_SHORT).show();
-                new LoginGPSAccount().execute();
-
-            }
-        });
-
-
-    }
-    public void generatemap(){
-        setContentView(R.layout.activity_maps);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-    }
-
+//   This method is for the zoom buttons
+//   It allows the map to zoom in and zoom out with the buttons
      public void onZoom(View view) {
          if (view.getId() == R.id.btnzoomin) {
              mMap.animateCamera(CameraUpdateFactory.zoomTo(15), 2000, null);
@@ -712,7 +761,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          }
      }
 
-
+//   This method is for the search address bar
+//   It connects to the google map database with geocoder
      public void onSearch(View view) {
          EditText location_tf = (EditText) findViewById(R.id.txtAddress);
          String location = location_tf.getText().toString();
@@ -730,6 +780,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
          }
      }
+//    This method is for requesting permission for location for Android Version 6.0
      protected void requestPermission(String permissionType, int
              requestCode) {
          int permission = ContextCompat.checkSelfPermission(this,
@@ -740,7 +791,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              );
          }
      }
-
+//    This method is for requesting permission for location for Android Version 6.0
      @Override
      public void onRequestPermissionsResult(int requestCode,
                                             String permissions[], int[]
@@ -757,6 +808,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              }
          }
      }
+//    This method gets called when the user wants to view the friend list from the main page
+//    It calls CreateList() to generate the friend list
+//    When a friend is selected FindFriend() is called to receive the friend info from database
     public void friendlist(){
         setContentView(R.layout.friendlist);
         friendList = (ListView) findViewById(R.id.friendList);
@@ -772,8 +826,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+//    This class is called when the user chooses a friend from the friend list
+//    It receives and stores the friend's info from the database
     private class FindFriend extends AsyncTask<String, Void, String> {//
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSFriendXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSAccountXML(ReadGPSAccountURL);
@@ -785,6 +843,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         @Override
+//     This method runs once connection with the XML file is complete
+//     It splits and stores the friend's  external info into variables
+//     If the requested info is unavaliable, it will display a toast message, talling the user that it is unavaliable
+//     Once done, it will generate the main page and run the UpdateInfo() method to update the external info
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
                 if(String.valueOf(ReadUsername.get(x)).equals(friendtxt))
@@ -830,8 +892,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             new UpdateInfo().execute();
         }
     }
+//    This class runs on a loop and it is called once a friend is chosen
+//    This class is meant to continuously receive the friend's info from the database
+//    and updating the variables in the phone when the info changes
     private class UpdateInfo extends AsyncTask<String, Void, String> {//
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSFriendXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSAccountXML(ReadGPSAccountURL);
@@ -842,7 +909,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return ("XML Error: " + e);
             }
         }
-        @Override
+    @Override
+//     This method runs once connection with the XML file is complete
+//     It runs on a constantly, checking for updates in the friend's info
+//     It moves the marker on the map, following where the GPS coordinates point to
+//     and updates the WiFi page when the info changes
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserID.size(); x++){
                 if(String.valueOf(ReadUsername.get(x)).equals(friendtxt))
@@ -888,6 +959,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             new UpdateInfo().execute();
         }
     }
+//    This method runs when the user wants to delete a friend
+//    It will clear all the list and generate the friend list on the delete page with CreateDeleteList()
+//    When a friend is selected, DeleteFriend() is called
     public void deletelist(){
         setContentView(R.layout.deletelist);
         deleteList = (ListView) findViewById(R.id.deleteList);
@@ -903,19 +977,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+//    This class is called when the user opens the delete page
+//    It creates the user's friend list on the delete page
     private class CreateDeleteList extends AsyncTask<String, Void, String> {
-        @Override
-        protected String doInBackground(String... urls) {
-            try {
-                return ReadGPSFriendXML(ReadGPSFriendURL);
-            } catch (IOException e) {
+    @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSFriendXML method for connection
+    protected String doInBackground(String... urls) {
+        try {
+            return ReadGPSAccountXML(ReadGPSAccountURL);
+        } catch (IOException e) {
 
-                return ("IO Error: " + e);
-            } catch (XmlPullParserException e) {
-                return ("XML Error: " + e);
-            }
+            return ("IO Error: " + e);
+        } catch (XmlPullParserException e) {
+            return ("XML Error: " + e);
         }
-        @Override
+    }
+    @Override
+//     This method runs once connection with the XML file is complete
+//     It populates the listview with the friends list
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
             }
@@ -923,8 +1003,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             deleteList.setAdapter(arrayAdapter);
         }
     }
+//    This class is called when the user opens the friend list page
+//    It creates the user's friend list on the friend list page
     private class CreateList extends AsyncTask<String, Void, String> {
         @Override
+//      This method will connect to the XML file with the URL
+//      It calls the ReadGPSFriendXML method for connection
         protected String doInBackground(String... urls) {
             try {
                 return ReadGPSFriendXML(ReadGPSFriendURL);
@@ -936,6 +1020,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
         @Override
+//     This method runs once connection with the XML file is complete
+//     It populates the listview with the friends list
         protected void onPostExecute(String result) {
             for(int x=0; x<ReadUserIDFriend.size(); x++){
             }
@@ -943,11 +1029,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             friendList.setAdapter(arrayAdapter);
         }
     }
+//    This class is called whenever a friend is selected in the delete friend list
+//    It deletes the friend from the friend list
     private class DeleteFriend extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-
-        }
+//        This method takes the stored objects and name them different variables for the PHP file to understand
         @Override
         protected Void doInBackground(Void... arg0) {
 
@@ -973,6 +1058,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             return null;
         }
+//    This method is called once the variables has been sent to the PHP files, for the friend to be deleted
+//    It runs the moves the layout back to the friend list showing that the friend is deleted
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
@@ -982,16 +1069,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
     }
+//    This class is called once all the checking is done
+//    It communicates with the PHP file to add a friend into the user's friend list
     private class AddFriend extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected void onPreExecute() {
-
-        }
+//        This method takes the stored objects and name them different variables for the PHP file to understand
         @Override
         protected Void doInBackground(Void... arg0) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/AddCode.php");//http://php-agkh1995.rhcloud.com/add.php");
+            HttpPost httppost = new HttpPost("http://gpsapp-ryanpow.rhcloud.com/AddCode.php");
             // add start end and booking fac
             httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
             try {
@@ -1012,6 +1098,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             return null;
         }
+//    This method is called once the variables has been sent to the PHP files, for the friend to be added
+//    It will go back to the main page with the map
         @Override
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);

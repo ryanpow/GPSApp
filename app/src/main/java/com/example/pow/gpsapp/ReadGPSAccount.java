@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
+// This class is called when the application wants to connect to the GPSAccount server
 public class ReadGPSAccount {
     private static final String ns = null;
 
@@ -92,7 +92,7 @@ public class ReadGPSAccount {
         return new gpsEntry(UserID2, Username2, Password2, Location2, Wifi2 );
     }
 
-    // Processes title tags in the feed.
+    // Processes title tags in the database.
     private String readUserID(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "UserID");
         String title = readText(parser);
@@ -121,7 +121,6 @@ public class ReadGPSAccount {
         return title;
     }
 
-    // Processes summary tags in the feed.
     private String readWifi(XmlPullParser parser) throws IOException, XmlPullParserException {
         parser.require(XmlPullParser.START_TAG, ns, "Wifi");
         String title = readText(parser);
@@ -129,7 +128,7 @@ public class ReadGPSAccount {
         return title;
     }
 
-    // For the tags title and summary, extracts their text values.
+    // For the titles, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
         String result = "";
         if (parser.next() == XmlPullParser.TEXT) {

@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
+// This class is called when the application wants to connect to the GPSFriend server
 public class ReadGPSFriend {
     private static final String ns = null;
 
@@ -92,7 +92,7 @@ public class ReadGPSFriend {
     }
 
 
-    // For the tags title and summary, extracts their text values.
+    // For the title tags, extracts their text values.
     private String readText(XmlPullParser parser) throws IOException, XmlPullParserException {
         String result = "";
         if (parser.next() == XmlPullParser.TEXT) {
